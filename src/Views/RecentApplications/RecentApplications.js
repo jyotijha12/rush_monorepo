@@ -219,7 +219,7 @@ const RecentApplications = () => {
 
     let config = {
       method: "post",
-      url: `${process.env.REACT_APP_BASE_API_URL}/get_data/}`,
+      url: `${process.env.REACT_APP_BASE_API_URL}/get_data/`,
       data: data,
     };
     axios
