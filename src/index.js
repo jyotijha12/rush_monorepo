@@ -7,7 +7,7 @@ import theme from "./theme";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <BrowserRouter>
+  <BrowserRouter basename="/absa">
     <ChakraProvider theme={theme}>
       <App />
     </ChakraProvider>

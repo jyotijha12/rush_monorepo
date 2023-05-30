@@ -56,5 +56,6 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.30.1",
     "prettier": "^2.7.1"
-  }
+  },
+  "homepage": "/absa/"
 }

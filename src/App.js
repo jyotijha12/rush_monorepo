@@ -17,10 +17,10 @@ const App = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const pathname = window.location.pathname;
 
-    if (isLoggedIn === "true" && pathname === `/`) {
+    if (isLoggedIn === "true" && pathname === `/absa`) {
       window.location.pathname = `/recent-applications`;
-    } else if (isLoggedIn !== "true" && pathname !== `/`) {
-      window.location.pathname = `/`;
+    } else if (isLoggedIn !== "true" && pathname !== `/absa`) {
+      window.location.pathname = `/absa`;
     }
     setLoading(false);
   }, []);
@@ -32,14 +32,14 @@ const App = () => {
 
   const logoutUser = () => {
     localStorage.removeItem("isLoggedIn");
-    window.location.pathname = `/`;
+    window.location.pathname = `/absa`;
   };
 
   return (
     <Box>
       <AppBar logoutUser={logoutUser} />
       {!loading ? (
-        window.location.pathname === `/` ? (
+        window.location.pathname === `/absa` ? (
           <Login loginUser={loginUser} />
         ) : (
           <Box>

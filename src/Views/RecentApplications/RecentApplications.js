@@ -207,7 +207,7 @@ const data = [
 
 const RecentApplications = () => {
   const [search, setSearch] = useState("");
-  const [filteredData, setFilteredData] = useState([]);
+  const [filteredData, setFilteredData] = useState(data);
 
   const navigate = useNavigate();
 
@@ -233,7 +233,7 @@ const RecentApplications = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    // fetchData();
   }, []);
 
   const handleSearch = () => {
