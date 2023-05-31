@@ -18,7 +18,7 @@ const App = () => {
     const pathname = window.location.pathname;
 
     if (isLoggedIn === "true" && pathname === `/absa`) {
-      window.location.pathname = `/recent-applications`;
+      window.location.pathname = `/absa/recent-applications`;
     } else if (isLoggedIn !== "true" && pathname !== `/absa`) {
       window.location.pathname = `/absa`;
     }
