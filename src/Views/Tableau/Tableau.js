@@ -5,11 +5,18 @@ import "../../css/tableau.css";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import { useNavigate } from "react-router-dom";
 
-const inputdata_consumer =
-  "https://analytics.ebrain.couture.ai/views/TestGraph/Dashboard1?:origin=card_share_link&:embed=n";
-const solution_output_transaction_consumer = `${window.REACT_APP_TABLEAU_SERVER_URL}/views/ConsumerCommercial_v1/SolutionOutput-TransactionLevel?:jsdebug=y&:comments=no&:refresh=yes&:display_count=n&:showVizHome=n&:origin=viz_share_link`;
-const solution_output_tradeline_consumer = `${window.REACT_APP_TABLEAU_SERVER_URL}/views/ConsumerCommercial_v1/SolutionOutput-Tradelinelevel?:jsdebug=y&:comments=no&:refresh=yes&:display_count=n&:showVizHome=n&:origin=viz_share_link`;
-const solution_output_customerlevel_consumer = `${window.REACT_APP_TABLEAU_SERVER_URL}/views/ConsumerCommercial_v1/SolutionOutput-Customerlevel?:jsdebug=y&:comments=no&:refresh=yes&:display_count=n&:showVizHome=n&:origin=viz_share_link`;
+const digitized_data =
+  "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/Digitizeddata?:origin=card_share_link&:embed=n";
+const transaction_level_output =
+  "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/Transactionleveloutput?:origin=card_share_link&:embed=n";
+const bank_application_overview =
+  "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/ApplicationOverview?:origin=card_share_link&:embed=n";
+const customer_transaction_summary =
+  "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/Summary-Transactions?:origin=card_share_link&:embed=n";
+const customer_insights_income =
+  "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/IncomeOverview?:origin=card_share_link&:embed=n";
+const customer_insights_expenses =
+  "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/ExpenseOverview?:origin=card_share_link&:embed=n";
 
 const options = {
   height: window.screen.height < 768 ? 300 : window.screen.height - 300,
@@ -50,38 +57,33 @@ const Tableau = () => {
   let tabContent = useMemo(() => {
     switch (page) {
       case "Digitized Bank Data Statement":
-        return <TableauComponent page={page} pageurl={inputdata_consumer} />;
+        return <TableauComponent page={page} pageurl={digitized_data} />;
       case "Solutions Output-Transaction Level":
         return (
-          <TableauComponent
-            page={page}
-            pageurl={solution_output_transaction_consumer}
-          />
+          <TableauComponent page={page} pageurl={transaction_level_output} />
         );
       case "Customer Bank Application Overview":
         return (
-          <TableauComponent
-            page={page}
-            pageurl={solution_output_tradeline_consumer}
-          />
+          <TableauComponent page={page} pageurl={bank_application_overview} />
         );
       case "Customer Transactions Summary":
         return (
           <TableauComponent
             page={page}
-            pageurl={solution_output_tradeline_consumer}
+            pageurl={customer_transaction_summary}
           />
+        );
+      case "Customer Insights - Income":
+        return (
+          <TableauComponent page={page} pageurl={customer_insights_income} />
         );
       case "Customer Insights - Expenses":
         return (
-          <TableauComponent
-            page={page}
-            pageurl={solution_output_customerlevel_consumer}
-          />
+          <TableauComponent page={page} pageurl={customer_insights_expenses} />
         );
 
       default:
-        return <TableauComponent page={page} pageurl={inputdata_consumer} />;
+        return <TableauComponent page={page} pageurl={digitized_data} />;
     }
   }, [page]);
 
