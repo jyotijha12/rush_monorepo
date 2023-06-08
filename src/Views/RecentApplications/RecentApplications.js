@@ -207,11 +207,12 @@ const data = [
 
 const RecentApplications = () => {
   const [search, setSearch] = useState("");
-  const [filteredData, setFilteredData] = useState(data);
+  const [filteredData, setFilteredData] = useState([]);
 
   const navigate = useNavigate();
 
   const fetchData = () => {
+    const token = JSON.parse(localStorage.getItem("token"))["data"];
     let data = new FormData();
     data.append("page_number", "1");
     data.append("page_size", "150");
@@ -219,21 +220,22 @@ const RecentApplications = () => {
 
     let config = {
       method: "post",
-      url: `${process.env.REACT_APP_BASE_API_URL}/get_data/`,
+      url: `${process.env.REACT_APP_BASE_API_URL}/api/get_data/`,
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+      },
       data: data,
     };
     axios
       .request(config)
       .then((response) => {
-        setFilteredData(response.data);
+        setFilteredData(response.data.data);
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch(() => {});
   };
 
   useEffect(() => {
-    // fetchData();
+    fetchData();
   }, []);
 
   const handleSearch = () => {
@@ -241,7 +243,7 @@ const RecentApplications = () => {
       setFilteredData(data);
     } else {
       const filtered = data.filter(
-        (item) => item.application_number.toLowerCase() === search.toLowerCase()
+        (item) => item.application_id.toLowerCase() === search.toLowerCase()
       );
       setFilteredData(filtered);
     }
