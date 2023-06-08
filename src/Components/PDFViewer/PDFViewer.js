@@ -5,16 +5,21 @@ import file from "../../Resources/READ-ME.pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 const PDFViewer = () => {
-  const [numPages, setNumPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [numPages, setNumPages] = useState(null);
 
-  const onDocumentLoadSuccess = ({ numPages }) => {
+  const handlePreviousPage = () => {
+    setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
+  };
+
+  const handleDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
   };
 
-  const changePage = (delta) => {
-    setCurrentPage((prevPage) => prevPage + delta);
-  };
   return (
     <Box>
       <Box
@@ -24,15 +29,14 @@ const PDFViewer = () => {
         flexDirection="column"
         alignItems="center"
       >
-        <Document
-          file={file}
-          onLoadSuccess={onDocumentLoadSuccess}
-          renderMode="canvas"
-        >
+        <Document file={file} onLoadSuccess={handleDocumentLoadSuccess}>
           <Page pageNumber={currentPage} />
         </Document>
         <div>
-          <button disabled={currentPage <= 1} onClick={() => changePage(-1)}>
+          <button
+            disabled={currentPage <= 1}
+            onClick={() => handlePreviousPage()}
+          >
             Previous
           </button>
           <span>
@@ -40,7 +44,7 @@ const PDFViewer = () => {
           </span>
           <button
             disabled={currentPage >= numPages}
-            onClick={() => changePage(1)}
+            onClick={() => handleNextPage()}
           >
             Next
           </button>
