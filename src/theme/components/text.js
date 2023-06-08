@@ -19,7 +19,7 @@ const Text = {
       lineHeight: "16px",
     },
     body4: {
-      fontSize: "20px",
+      fontSize: "8px",
       color: "custom.light",
     },
     body5: {
@@ -29,6 +29,15 @@ const Text = {
     body6: {
       fontSize: "16px",
       lineHeight: "16px",
+    },
+    body7: {
+      fontSize: "16px",
+      lineHeight: "16px",
+      fontWeight: 600,
+    },
+    body8: {
+      fontSize: "48px",
+      fontWeight: 700,
     },
     body1semiBold: {
       fontWeight: "600",

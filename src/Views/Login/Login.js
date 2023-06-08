@@ -11,8 +11,14 @@ import { useState } from "react";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 
-const Login = (props) => {
+const Login = () => {
   const [show, setShow] = useState(false);
+
+  const login = () => {
+    window.location.replace(
+      `https://3.211.184.2:9443/oauth2/authorize?response_type=code&client_id=${process.env.REACT_APP_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=openid`
+    );
+  };
 
   return (
     <Flex justifyContent="center" alignItems="center" h="600px">
@@ -69,7 +75,7 @@ const Login = (props) => {
           mt={14}
         >
           <Box>
-            <Button w="260px" onClick={props.loginUser}>
+            <Button w="260px" onClick={login}>
               Login
             </Button>
           </Box>
