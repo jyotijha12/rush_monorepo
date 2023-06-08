@@ -12,10 +12,9 @@ const useStyles = () => ({
     width: "100%",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
     padding: "12px 24px",
-    paddingRight: "60px",
-    paddingLeft: "60px",
+    paddingRight: "10px",
+    paddingLeft: "50px",
     transition: "0.5s",
     height: "80px",
     background: "#FFFFFF",
@@ -23,62 +22,100 @@ const useStyles = () => ({
   },
 });
 
-const AppBar = (props) => {
+const AppBar = () => {
   const styles = useStyles();
   const navigate = useNavigate();
 
-  return (
-    <Box w="100%">
-      <Box sx={styles.appbar}>
-        <Flex gap={4} alignItems="center">
-          <Box>
-            <Image src={ABSA} />
-          </Box>
-          <Text variant="body1" color="custom.main">
-            Everyday Banking
-          </Text>
-        </Flex>
-        <Flex gap={1} alignItems="baseline">
-          <Text variant="body4">powered by</Text>
-          <Box>
-            <Image src={EXL} />
-          </Box>
-        </Flex>
-      </Box>
+  const logoutUser = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("token");
+    window.location.pathname = `/absa`;
+    // const token = JSON.parse(localStorage.getItem("token"))["data"];
 
-      <Box pt="86px" pr={14}>
-        {window.location.pathname !== "/" && (
-          <Flex gap={6} justifyContent="flex-end" alignItems="center">
-            <Flex
-              gap={2}
-              justifyContent="center"
-              alignItems="center"
-              cursor="pointer"
-              onClick={() => navigate("change-password")}
-            >
-              <Text variant="body6" color="custom.main">
-                Change password
-              </Text>
-              <Box>
-                <Image src={Lock} />
-              </Box>
-            </Flex>
-            <Flex
-              gap={2}
-              justifyContent="center"
-              alignItems="center"
-              onClick={props.logoutUser}
-              cursor="pointer"
-            >
-              <Text variant="body6" color="custom.main">
-                Logout
-              </Text>
-              <Box>
-                <Image src={Logout} />
+    // let config = {
+    //   method: "post",
+    //   url: `${process.env.REACT_APP_BASE_AUTHENTICATION_URL}/auth/user_logout/`,
+    //   headers: {
+    //     Authorization: `Bearer ${token.access_token}`,
+    //     custom: `Bearer ${token.access_token}`,
+    //   },
+    // };
+    // axios
+    //   .request(config)
+    //   .then(() => {
+    //     localStorage.removeItem("isLoggedIn");
+    //     localStorage.removeItem("token");
+    //     window.location.pathname = `/absa`;
+    //   })
+    //   .catch(() => {});
+  };
+
+  return (
+    <Box w="100%" pb="90px">
+      <Box sx={styles.appbar}>
+        <Flex alignItems="center" flexDir="column" w="100%">
+          <Flex alignItems="center" justifyContent="flex-end" w="100%">
+            <Flex alignItems="baseline" gap={2}>
+              <Text variant="body4">powered by</Text>
+              <Box h="12px">
+                <Image src={EXL} h="100%" />
               </Box>
             </Flex>
           </Flex>
-        )}
+          <Flex justifyContent="space-between" alignItems="center" w="100%">
+            <Flex alignItems="center" w="100%" gap={8}>
+              <Box h="50px">
+                <Image
+                  src={ABSA}
+                  h="100%"
+                  cursor="pointer"
+                  onClick={() => navigate("/recent-applications")}
+                />
+              </Box>
+              <Text variant="body7" color="custom.main">
+                BTI Portal
+              </Text>
+            </Flex>
+            {window.location.pathname !== "/absa" && (
+              <Flex
+                mr={20}
+                gap={6}
+                justifyContent="flex-end"
+                alignItems="center"
+                w="100%"
+              >
+                <Flex
+                  gap={2}
+                  justifyContent="center"
+                  alignItems="center"
+                  cursor="pointer"
+                  onClick={() => navigate("change-password")}
+                >
+                  <Text variant="body6" color="custom.main">
+                    Change password
+                  </Text>
+                  <Box h="25px">
+                    <Image src={Lock} h="100%" />
+                  </Box>
+                </Flex>
+                <Flex
+                  gap={2}
+                  justifyContent="center"
+                  alignItems="center"
+                  onClick={logoutUser}
+                  cursor="pointer"
+                >
+                  <Text variant="body6" color="custom.main">
+                    Logout
+                  </Text>
+                  <Box h="25px">
+                    <Image src={Logout} h="100%" />
+                  </Box>
+                </Flex>
+              </Flex>
+            )}
+          </Flex>
+        </Flex>
       </Box>
     </Box>
   );
