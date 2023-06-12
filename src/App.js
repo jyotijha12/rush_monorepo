@@ -13,6 +13,7 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    localStorage.setItem("chakra-ui-color-mode", "light");
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const pathname = window.location.pathname;
     const token = localStorage.getItem("token");
