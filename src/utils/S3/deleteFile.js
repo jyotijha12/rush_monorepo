@@ -10,7 +10,7 @@ export const deleteFile = async (applicationId, instanceId, fileName) => {
 
   const originalParams = {
     Bucket: process.env.REACT_APP_AWS_S3_BUCKET,
-    Key: `${process.env.REACT_APP_AWS_S3_FOLDER}/${applicationId}/${instanceId}/${fileName}.pdf`,
+    Key: `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${applicationId}/${instanceId}/${fileName}.pdf`,
   };
 
   try {
@@ -18,12 +18,11 @@ export const deleteFile = async (applicationId, instanceId, fileName) => {
     console.log(`Successfully deleted file: ${fileName}.pdf`);
   } catch (error) {
     console.error(`Error deleting file: ${fileName}.pdf`, error);
-    throw error;
   }
 
   const jsonParams = {
     Bucket: process.env.REACT_APP_AWS_S3_BUCKET,
-    Key: `${process.env.REACT_APP_AWS_S3_FOLDER}/${applicationId}/${instanceId}/${fileName}.json`,
+    Key: `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${applicationId}/${instanceId}/${fileName}.json`,
   };
 
   try {
@@ -31,6 +30,5 @@ export const deleteFile = async (applicationId, instanceId, fileName) => {
     console.log(`Successfully deleted file: ${fileName}.json`);
   } catch (error) {
     console.error(`Error deleting file: ${fileName}.json`, error);
-    throw error;
   }
 };

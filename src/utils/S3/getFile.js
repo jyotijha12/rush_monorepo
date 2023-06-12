@@ -22,6 +22,5 @@ export const getFile = async (bucketName, filePath) => {
       return null;
     }
     console.error("Error retrieving file from S3:", error);
-    throw error;
   }
 };

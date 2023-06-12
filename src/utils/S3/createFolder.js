@@ -21,7 +21,6 @@ export const createFolder = async (bucketName, folderName) => {
       await s3.putObject(params).promise();
       console.log(`Folder '${folderName}' created successfully.`);
     } else {
-      throw error;
     }
   }
 };
