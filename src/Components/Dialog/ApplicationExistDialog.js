@@ -16,6 +16,7 @@ const ApplicationExistDialog = (props) => {
       isOpen={props.open}
       onClose={props.onClose}
       scrollBehavior="outside"
+      closeOnOverlayClick={false}
     >
       <ModalOverlay />
       <ModalContent>

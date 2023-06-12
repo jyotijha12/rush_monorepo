@@ -10,17 +10,16 @@ export const checkFileExist = async (applicationId, instanceId, fileName) => {
 
   const params = {
     Bucket: process.env.REACT_APP_AWS_S3_BUCKET,
-    Key: `${process.env.REACT_APP_AWS_S3_FOLDER}/${applicationId}/${instanceId}/${fileName}`,
+    Key: `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${applicationId}/${instanceId}/${fileName}`,
   };
 
   try {
     await s3.headObject(params).promise();
-    return true; // File exists
+    return true;
   } catch (error) {
     if (error.code === "NotFound") {
-      return false; // File does not exist
+      return false;
     }
     console.error(`Error checking file existence: ${fileName}`, error);
-    throw error;
   }
 };

@@ -14,7 +14,12 @@ import FileUploader from "../FileUploader/FileUploader";
 
 const UploaderDialog = (props) => {
   return (
-    <Modal size="4xl" isOpen={props.open} onClose={props.onClose}>
+    <Modal
+      size="4xl"
+      isOpen={props.open}
+      onClose={props.onClose}
+      closeOnOverlayClick={false}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalCloseButton />

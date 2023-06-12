@@ -87,14 +87,21 @@ const ApplicationTable = (props) => {
               {paginatedData.map((item, i) => {
                 return (
                   <Tr key={i}>
-                    <Td>{item.application_id}</Td>
-                    <Td textAlign="center">{item.instance_id}</Td>
-                    <Td>{item.user}</Td>
-                    <Td>{item.status}</Td>
-                    <Td>{item.error_warning}</Td>
+                    <Td fontSize="14px">{item.application_id}</Td>
+                    <Td fontSize="14px" textAlign="center">
+                      {item.instance_id}
+                    </Td>
+                    <Td fontSize="14px">{item.user}</Td>
+                    <Td fontSize="14px">{item.status}</Td>
+                    <Td fontSize="14px">
+                      {item.errors.length > 0
+                        ? item.errors[0] + "..."
+                        : "No Errors"}
+                    </Td>
                     <Td>
                       {item.status === "Complete" ? (
                         <Text
+                          fontSize="14px"
                           textDecoration="underline"
                           cursor="pointer"
                           onClick={() => navigate("/bti-tool/tableau")}
@@ -103,15 +110,24 @@ const ApplicationTable = (props) => {
                         </Text>
                       ) : item.status === "Saved" ? (
                         <Text
+                          fontSize="14px"
                           textDecoration="underline"
                           cursor="pointer"
-                          onClick={() => navigate("/bti-tool")}
+                          onClick={() =>
+                            navigate("/bti-tool", {
+                              state: {
+                                rowData: item,
+                              },
+                            })
+                          }
                         >
                           Process Request
                         </Text>
-                      ) : null}
+                      ) : (
+                        <Text fontSize="14px">Processing...</Text>
+                      )}
                     </Td>
-                    <Td>
+                    <Td fontSize="14px">
                       {moment(item.modified_at).format("YYYY-MM-DD HH:mm:ss")}
                     </Td>
                   </Tr>
@@ -172,7 +188,7 @@ const ApplicationTable = (props) => {
               >
                 <ChevronLeftRoundedIcon />
               </IconButton>
-              <Heading size="sm" p={5}>
+              <Heading color="custom.main" size="sm" p={5}>
                 Page {page} of {Math.ceil(totalData.length / pageSize)}
               </Heading>
               <IconButton
