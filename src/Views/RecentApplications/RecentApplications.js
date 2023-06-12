@@ -13,209 +13,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApplicationTable from "../../Components/Table/ApplicationTable";
 
-const data = [
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A012",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A013",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A014",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A014",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01444",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01444",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-];
-
 const RecentApplications = () => {
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
 
   const navigate = useNavigate();
 
-  const fetchData = () => {
+  const fetchData = (application_id) => {
     const token = JSON.parse(localStorage.getItem("token"))["data"];
     let data = new FormData();
+    application_id && data.append("application_id", application_id);
     data.append("page_number", "1");
-    data.append("page_size", "150");
+    data.append("page_size", "100");
     data.append("file_details", "1");
 
     let config = {
@@ -238,14 +47,15 @@ const RecentApplications = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (search === "") fetchData();
+  }, [search]);
+
   const handleSearch = () => {
     if (search === "") {
-      setFilteredData(data);
+      setFilteredData(filteredData);
     } else {
-      const filtered = data.filter(
-        (item) => item.application_id.toLowerCase() === search.toLowerCase()
-      );
-      setFilteredData(filtered);
+      fetchData(search);
     }
   };
 
