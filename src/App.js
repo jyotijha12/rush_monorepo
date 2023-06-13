@@ -14,9 +14,9 @@ const App = () => {
 
   useEffect(() => {
     localStorage.setItem("chakra-ui-color-mode", "light");
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const isLoggedIn = sessionStorage.getItem("isLoggedIn");
     const pathname = window.location.pathname;
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     if (
       (isLoggedIn === "true" && pathname === `/absa`) ||

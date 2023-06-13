@@ -31,9 +31,9 @@ const WSO2 = () => {
     axios
       .request(config)
       .then((response) => {
-        localStorage.setItem("token", JSON.stringify(response.data));
-        localStorage.setItem("isLoggedIn", "true");
-        window.location.assign(
+        sessionStorage.setItem("token", JSON.stringify(response.data));
+        sessionStorage.setItem("isLoggedIn", "true");
+        window.location.pathname(
           `${process.env.REACT_APP_BASE_URL}/recent-applications`
         );
       })
