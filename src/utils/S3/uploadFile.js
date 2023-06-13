@@ -30,12 +30,9 @@ export const uploadFile = async (applicationId, instanceId, files) => {
       };
 
       await s3.upload(params).promise();
-      console.log(`File "${file.name}" uploaded successfully.`);
     }
-
     return true;
   } catch (error) {
-    console.error("Error uploading file:", error);
     return false;
   }
 };

@@ -37,7 +37,5 @@ export const listFilesObject = async (path) => {
     );
 
     return files;
-  } catch (error) {
-    console.error("Error listing files:", error);
-  }
+  } catch (error) {}
 };

@@ -24,19 +24,15 @@ export const fetchErrorFile = async (path) => {
         .promise();
 
       const fileData = response.Body.toString("utf-8");
-      console.log("Error file content:", fileData);
       clearInterval(pollingInterval);
       return fileData();
-    } catch (error) {
-      console.error("Error fetching error file:", error);
-    }
+    } catch (error) {}
   };
 
   pollingInterval = setInterval(() => {
     elapsedTime += pollingDelay;
     if (elapsedTime >= maxPollingTime) {
       clearInterval(pollingInterval);
-      console.log("Polling stopped. Error file not found.");
       return;
     }
 
