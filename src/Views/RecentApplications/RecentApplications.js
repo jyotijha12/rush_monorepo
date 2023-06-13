@@ -20,7 +20,7 @@ const RecentApplications = () => {
   const navigate = useNavigate();
 
   const fetchData = (application_id) => {
-    const token = JSON.parse(localStorage.getItem("token"))["data"];
+    const token = JSON.parse(sessionStorage.getItem("token"))["data"];
     let data = new FormData();
     application_id && data.append("application_id", application_id);
     data.append("page_number", "1");
@@ -73,7 +73,7 @@ const RecentApplications = () => {
     <Box mb={4}>
       <Flex justifyContent="center" alignItems="center" h="100%" pt={8} pb={6}>
         <Flex
-          w="80%"
+          w="85%"
           h="100%"
           border="4px solid"
           borderColor="primary.main"
@@ -89,7 +89,7 @@ const RecentApplications = () => {
         </Flex>
       </Flex>
       <Flex justifyContent="center">
-        <Flex w="70%" flexDir="column" gap={4}>
+        <Flex w="75%" flexDir="column" gap={4}>
           <Text variant="body2">Recent Applications</Text>
           <Flex gap={4}>
             <Flex flexDir="column" gap={1} w="55%">
