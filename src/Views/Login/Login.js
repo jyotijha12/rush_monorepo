@@ -41,9 +41,10 @@ const Login = () => {
           justifyContent="center"
           alignItems="center"
         >
-          <Input placeholder="Username" variant="flushed" w="60%" />
+          <Input placeholder="Username" variant="flushed" w="60%" isDisabled />
           <InputGroup w="60%">
             <Input
+              isDisabled
               variant="flushed"
               type={show ? "text" : "password"}
               placeholder="Password"
