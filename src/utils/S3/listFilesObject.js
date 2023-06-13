@@ -15,12 +15,28 @@ export const listFilesObject = async (path) => {
 
   try {
     const response = await s3.listObjectsV2(listParams).promise();
-    const fileList = response.Contents.map((file) => ({
-      name: file.Key.split("/").pop(),
-      size: file.Size,
-    }));
-    const filteredFiles = fileList.filter((file) => file.name.endsWith(".pdf"));
-    return filteredFiles.filter((file) => file.name !== "");
+    const fileList = response.Contents.filter((file) =>
+      file.Key.endsWith(".pdf")
+    );
+    const files = await Promise.all(
+      fileList.map(async (file) => {
+        const fileContentParams = {
+          Bucket: process.env.REACT_APP_AWS_S3_BUCKET,
+          Key: file.Key,
+        };
+        const fileContentResponse = await s3
+          .getObject(fileContentParams)
+          .promise();
+        const fileContent = fileContentResponse.Body;
+        const fileBlob = new Blob([fileContent], { type: "application/pdf" });
+
+        return new File([fileBlob], file.Key.split("/").pop(), {
+          type: "application/pdf",
+        });
+      })
+    );
+
+    return files;
   } catch (error) {
     console.error("Error listing files:", error);
   }
