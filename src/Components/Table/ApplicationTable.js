@@ -18,6 +18,7 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -87,7 +88,11 @@ const ApplicationTable = (props) => {
               {paginatedData.map((item, i) => {
                 return (
                   <Tr key={i}>
-                    <Td fontSize="14px">{item.application_id}</Td>
+                    <Td fontSize="14px">
+                      <Tooltip hasArrow label={item.application_id}>
+                        {item.application_id.substring(0, 10) + "..."}
+                      </Tooltip>
+                    </Td>
                     <Td fontSize="14px" textAlign="center">
                       {item.instance_id}
                     </Td>
