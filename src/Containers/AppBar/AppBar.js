@@ -70,8 +70,12 @@ const AppBar = () => {
                 <Image
                   src={ABSA}
                   h="100%"
-                  cursor="pointer"
-                  onClick={() => navigate("/recent-applications")}
+                  cursor={window.location.pathname !== "/absa" ? "pointer" : ""}
+                  onClick={() =>
+                    window.location.pathname !== "/absa"
+                      ? navigate("/recent-applications")
+                      : {}
+                  }
                 />
               </Box>
               <Text variant="body7" color="custom.main">
