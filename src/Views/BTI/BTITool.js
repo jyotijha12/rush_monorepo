@@ -20,12 +20,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ApplicationExistDialog from "../../Components/Dialog/ApplicationExistDialog";
 import Select from "react-select";
 import { uploadFile } from "../../utils/S3/uploadFile";
-import { checkFile } from "../../utils/S3/checkFileInS3";
-import { deleteFile } from "../../utils/S3/deleteFile";
-import { checkFileExist } from "../../utils/S3/checkFileExist";
-import { copyFiles } from "../../utils/S3/copyFiles";
-import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
+// import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
 import axios from "axios";
+import { listFilesObject } from "../../utils/S3/listFilesObject";
+import { listFiles } from "../../utils/S3/listFiles";
+import { fetchErrorFile } from "../../utils/S3/fetchErrorFile";
 
 const BTITool = () => {
   const [uploaderDialog, setUploaderDialog] = useState({
@@ -46,13 +45,15 @@ const BTITool = () => {
   });
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [upload, setUpload] = useState(false);
   const [formData, setFormData] = useState({
     applicationId: "",
     instanceId: "1",
-    type: "",
+    type: null,
   });
-  const [data, setData] = useState([]);
+  const [s3FileList, setS3FileList] = useState([]);
+  const [uniqueInstanceId, setUniqueInstanceId] = useState("");
+  const [loadingSave, setLoadingSave] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const navigate = useNavigate();
 
@@ -61,24 +62,110 @@ const BTITool = () => {
   const location = useLocation();
 
   const types = [
-    "Consumer (Salaried-Full Time Employed)",
-    "Pensioner",
-    "Temporary Employed",
-    "Student",
-    "Self Employed Professional",
-    "Self Employed Non-Professional",
-    "Solo Proprietors",
+    { label: "Consumer (Salaried-Full Time Employed)", value: "x001Aba01" },
+    { label: "Pensioner", value: "x001Aba01" },
+    { label: "Temporary Employed", value: "x001Aba01" },
+    { label: "Student", value: "x001Aba01" },
+    { label: "Self Employed Professional", value: "x001Aba01" },
+    { label: "Self Employed Non-Professional", value: "x001Aba01" },
+    { label: "Solo Proprietors", value: "x001Aba01" },
   ];
 
-  const type_s = [
-    { label: "Consumer (Salaried-Full Time Employed)", value: "1" },
-    { label: "Pensioner", value: "1" },
-    { label: "Temporary Employed", value: "1" },
-    { label: "Student", value: "1" },
-    { label: "Self Employed Professional", value: "1" },
-    { label: "Self Employed Non-Professional", value: "1" },
-    { label: "Solo Proprietors", value: "1" },
-  ];
+  const saveFiles = async (id) => {
+    if (id) {
+      await uploadFile(formData.applicationId, id, files);
+
+      const fileList = await listFiles(
+        `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
+      );
+
+      setS3FileList(fileList);
+
+      const filesObject = await listFilesObject(
+        `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
+      );
+
+      setFiles(filesObject);
+
+      const token = JSON.parse(sessionStorage.getItem("token"))["data"];
+      let data_ = JSON.stringify({
+        instance_unique_id: id,
+        instance_id: formData.instanceId,
+        application_id: formData.applicationId,
+        input_files: files.map((item) => item.name),
+        use_case_id: formData.type,
+        create_new_instance:
+          location.state && location.state.rowData ? false : true,
+      });
+
+      let config = {
+        method: "post",
+        url: `${process.env.REACT_APP_BASE_API_URL}/api/upload_data/`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.access_token}`,
+        },
+        data: data_,
+      };
+
+      axios
+        .request(config)
+        .then(async () => {
+          const filesObject = await listFilesObject(
+            `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
+          );
+
+          setFiles(filesObject);
+          setLoadingSave(false);
+        })
+        .catch(() => {
+          setLoadingSave(false);
+        });
+      toast({
+        title: "Saved Request",
+        description: "All files saved successfully",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+
+      const fileData = await fetchErrorFile(`${formData.applicationId}/${id}`);
+      console.log("error file data :", fileData);
+    }
+  };
+
+  const getUniqueInstanceId = (params) => {
+    const token = JSON.parse(sessionStorage.getItem("token"))["data"];
+
+    let data = new FormData();
+    data.append("application_id", formData.applicationId);
+    location.state && data.append("instance_id", formData.instanceId);
+    data.append("create_new_instance", location.state ? false : true);
+
+    let config = {
+      method: "post",
+      url: `${process.env.REACT_APP_BASE_API_URL}/api/provide_uid/`,
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+      },
+      data: data,
+    };
+    axios
+      .request(config)
+      .then((response) => {
+        setFormData({
+          ...formData,
+          instanceId: response.data.data.instance_id,
+        });
+        setUniqueInstanceId(response.data.data.instance_unique_id);
+
+        params && saveFiles(response.data.data.instance_unique_id);
+        !params && setLoadingSave(false);
+      })
+      .catch(() => {
+        setLoadingSave(false);
+      });
+  };
 
   const fileInput = useRef(null);
 
@@ -90,22 +177,41 @@ const BTITool = () => {
 
   useEffect(() => {
     if (location.state && location.state.rowData) {
+      const getFiles = async () => {
+        const filesObject = await listFilesObject(
+          `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${location.state.rowData.instance_unique_id}`
+        );
+
+        setFiles(filesObject);
+
+        const fileList = await listFiles(
+          `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${location.state.rowData.instance_unique_id}`
+        );
+
+        setS3FileList(fileList);
+      };
+
+      getFiles();
+
+      if (location.state.rowData.status === "Processing") {
+        setGenerateInsightsDialog({ open: true, data: null });
+      }
       setFormData({
         ...formData,
         applicationId: location.state.rowData.application_id,
         instanceId: location.state.rowData.instance_id,
-        // type: rowData.type,
+        type: location.state.rowData.use_case_id,
       });
     }
 
     // eslint-disable-next-line
   }, [location.state]);
 
-  const fetchData = () => {
-    const token = JSON.parse(localStorage.getItem("token"))["data"];
+  const fetchData = (params) => {
+    const token = JSON.parse(sessionStorage.getItem("token"))["data"];
     let data = new FormData();
     data.append("application_id", formData.applicationId.substring(0, 10));
-    data.append("instance_id", formData.instanceId);
+    params && data.append("instance_id", formData.instanceId);
 
     let config = {
       method: "post",
@@ -118,12 +224,12 @@ const BTITool = () => {
     axios
       .request(config)
       .then((response) => {
-        if (response.data.data.length > 0) {
-          setFormData({
-            ...formData,
-            instanceId: response.data.data[0].instance_id,
-          });
-          setApplicationDialog({ open: true, data: null });
+        if (params) {
+          return response.data.data;
+        } else {
+          if (response.data.data.length > 0) {
+            setApplicationDialog({ open: true, data: null });
+          }
         }
       })
       .catch(() => {});
@@ -155,14 +261,14 @@ const BTITool = () => {
           let copyCounter = 1;
 
           const fileExists = files.find(
-            (file) => file.name === uploadedFile.name
+            (existingFile) => existingFile.name === uploadedFile.name
           );
 
           if (fileExists) {
             while (true) {
               const newFileName = `${
                 uploadedFile.name.split(".")[0]
-              }_copy${copyCounter}`;
+              }_copy${copyCounter}.pdf`;
               const existingFile = files.find(
                 (file) => file.name === newFileName
               );
@@ -178,55 +284,11 @@ const BTITool = () => {
 
           setFiles((prevFiles) => [...prevFiles, renamedFile]);
           setUploaderDialog({ open: false, data: null });
-
-          // await uploadFile(
-          //   formData.applicationId,
-          //   formData.instanceId,
-          //   renamedFile
-          // );
-
           setLoading(false);
         }
       }
     }
   };
-
-  useEffect(() => {
-    let pollingInterval;
-
-    const startPolling = async () => {
-      let pollingTime = 0;
-
-      pollingInterval = setInterval(async () => {
-        let stopPolling = true;
-
-        for (const file of files) {
-          const fileName = file.name;
-          const fileData = await checkFile(
-            formData.applicationId,
-            formData.instanceId,
-            fileName.split(".")[0]
-          );
-
-          if (fileData) {
-            stopPolling = false;
-          }
-
-          setData((prevData) => ({ ...prevData, [fileName]: fileData }));
-        }
-
-        if (stopPolling || pollingTime >= 10) {
-          clearInterval(pollingInterval);
-        }
-
-        pollingTime += 3;
-      }, 3000);
-    };
-
-    startPolling();
-
-    return () => clearInterval(pollingInterval);
-  }, [files, formData]);
 
   const fileSizeToMB = (size) => {
     let fileSizeInMB = size / (1024 * 1024);
@@ -234,33 +296,6 @@ const BTITool = () => {
   };
 
   const removeFile = async (index) => {
-    // const fileToRemove = files[index];
-
-    // try {
-    //   await deleteFile(
-    //     formData.applicationId,
-    //     formData.instanceId,
-    //     fileToRemove.name.split(".")[0]
-    //   );
-    // } catch (e) {}
-
-    // const jsonFileName = `${fileToRemove.name.split(".")[0]}.json`;
-    // const jsonFileExists = await checkFileExist(
-    //   formData.applicationId,
-    //   formData.instanceId,
-    //   jsonFileName
-    // );
-
-    // if (jsonFileExists) {
-    //   try {
-    //     await deleteFile(
-    //       formData.applicationId,
-    //       formData.instanceId,
-    //       jsonFileName
-    //     );
-    //   } catch (error) {}
-    // }
-
     setFiles((prevFiles) => {
       const updatedFiles = [...prevFiles];
       updatedFiles.splice(index, 1);
@@ -269,23 +304,43 @@ const BTITool = () => {
   };
 
   useEffect(() => {
-    if (
-      location.state &&
-      !location.state.rowData &&
-      formData.applicationId.length === 10
-    ) {
-      fetchData();
-    }
+    if (!location.state)
+      if (formData.applicationId.length === 10) {
+        fetchData();
+      }
+    // eslint-disable-next-line
+  }, [formData.applicationId]);
+
+  useEffect(() => {
+    const getList = async () => {
+      if (formData.applicationId.length === 10) {
+        getUniqueInstanceId(false);
+        const fileList = await listFiles(
+          `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${uniqueInstanceId}`
+        );
+        setS3FileList(fileList);
+      }
+    };
+    getList();
     // eslint-disable-next-line
   }, [formData.applicationId]);
 
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
-      border: state.isFocused ? "1px solid #455468" : "1px solid #455468",
+      border: state.isFocused
+        ? "1px solid #455468"
+        : state.isDisabled
+        ? "1px solid rgba(69, 84, 104, 0.4)"
+        : "1px solid #455468",
       boxShadow: state.isFocused ? null : null,
+      backgroundColor: state.isDisabled ? "white" : provided.backgroundColor,
       "&:hover": {
-        border: state.isFocused ? "1px solid #455468" : "1px solid #455468",
+        border: state.isFocused
+          ? "1px solid #455468"
+          : state.isDisabled
+          ? "1px solid rgba(69, 84, 104, 0.4)"
+          : "1px solid #455468",
       },
     }),
     option: (provided, state) => ({
@@ -300,72 +355,77 @@ const BTITool = () => {
     }),
   };
 
-  const saveRequest = () => {
-    if (
-      copyFiles(
-        `${formData.applicationId}/${formData.instanceId}`,
-        `${formData.applicationId}/${formData.instanceId}`
-      )
-    ) {
-      const token = JSON.parse(localStorage.getItem("token"))["data"];
-      let data_ = JSON.stringify({
-        instance_id: formData.instanceId,
-        application_id: formData.applicationId,
-        input_files: Object.keys(data).length > 0 ? Object.keys(data) : [],
-        type: formData.type,
+  const isValid = () => {
+    const newErrors = {};
+
+    if (!formData.applicationId.trim()) {
+      newErrors.applicationId = "Application number is required.";
+    } else if (formData.applicationId.trim().length !== 10) {
+      newErrors.applicationId = "Application number should be 10 digits.";
+    }
+
+    if (!formData.type) {
+      newErrors.type = "Type is required";
+    }
+
+    if (files.length === 0) {
+      newErrors.files = "Please select at least one file";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      toast({
+        title: "Required",
+        description: Object.values(newErrors).join(", "),
+        status: "error",
+        duration: 5000,
+        isClosable: true,
       });
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  const saveRequest = async () => {
+    if (isValid()) {
+      setLoadingSave(true);
+      getUniqueInstanceId(true);
+    }
+  };
+
+  const handleProcessRequest = async () => {
+    if (isValid()) {
+      setSaved(true);
+      setGenerateInsightsDialog({ open: true, data: null });
+      const token = JSON.parse(sessionStorage.getItem("token"))["data"];
+
+      let data = new FormData();
+      data.append("application_id", formData.applicationId);
+      data.append("instance_id", formData.instanceId);
+      data.append("instance_unique_id", uniqueInstanceId);
 
       let config = {
         method: "post",
-        url: `${process.env.REACT_APP_BASE_API_URL}/api/upload_data/`,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token.access_token}`,
-        },
-        data: data_,
+        url: `${process.env.REACT_APP_BASE_API_URL}/api/process_data/`,
+        headers: { Authorization: `Bearer ${token.access_token}` },
+        data: data,
       };
 
       axios
         .request(config)
-        .then(() => {
-          setUpload(true);
+        .then(async () => {
+          const data = await fetchData(true);
+          if (data.status === "Complete") {
+            setGenerateInsightsDialog({ open: false, data: null });
+            navigate("tableau", { state: { rowData: data } });
+          } else {
+            navigate("/recent-applications");
+          }
         })
-        .catch(() => {});
-      toast({
-        title: "Saved Request",
-        description: "All files saved successfully",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
+        .catch(() => {
+          // setGenerateInsightsDialog({ open: false, data: null });
+        });
     }
-  };
-
-  const handleProcessRequest = () => {
-    setGenerateInsightsDialog({ open: true, data: null });
-    const token = JSON.parse(localStorage.getItem("token"))["data"];
-
-    const FormData = require("form-data");
-    let data = new FormData();
-    data.append("application_id", formData.applicationId);
-    data.append("instance_id", formData.instanceId);
-
-    let config = {
-      method: "post",
-      url: `${process.env.REACT_APP_BASE_API_URL}/api/process_data/`,
-      headers: { Authorization: `Bearer ${token.access_token}` },
-      data: data,
-    };
-
-    axios
-      .request(config)
-      .then(() => {
-        setGenerateInsightsDialog({ open: false, data: null });
-        navigate("tableau");
-      })
-      .catch(() => {
-        setGenerateInsightsDialog({ open: false, data: null });
-      });
   };
 
   return (
@@ -415,15 +475,17 @@ const BTITool = () => {
                 <Flex flexDir="column" gap={1} w="100%">
                   <Text variant="body1semiBold">Type</Text>
                   <Select
-                    isDisabled={location.state && location.state.rowData}
+                    value={formData.type}
+                    // isDisabled={location.state && location.state.rowData}
                     placeholder="Select the type of application"
                     styles={customStyles}
                     isClearable
                     onChange={(e) => {
+                      setSaved(false);
                       if (e) {
                         setFormData({
                           ...formData,
-                          type: e.value,
+                          type: e,
                         });
                       } else {
                         setFormData({
@@ -432,10 +494,7 @@ const BTITool = () => {
                         });
                       }
                     }}
-                    options={types.map((item) => ({
-                      label: item,
-                      value: item,
-                    }))}
+                    options={types}
                   />
                 </Flex>
               </Flex>
@@ -447,7 +506,7 @@ const BTITool = () => {
               <Card w="100%">
                 <Flex
                   borderLeft="5px solid"
-                  borderColor={upload ? "success.main" : "primary.main"}
+                  borderColor={"primary.main"}
                   borderRadius="4px"
                 >
                   <Flex
@@ -473,10 +532,11 @@ const BTITool = () => {
                       flexDir="column"
                       justifyContent="center"
                       alignItems="center"
-                      onClick={() =>
+                      onClick={() => {
+                        setSaved(false);
                         formData.applicationId !== "" &&
-                        setUploaderDialog({ open: true, data: null })
-                      }
+                          setUploaderDialog({ open: true, data: null });
+                      }}
                     >
                       <Add style={{ color: "#455468" }} />
                       <Text variant="subtitle1">Add files</Text>
@@ -512,23 +572,23 @@ const BTITool = () => {
                               w="100%"
                             >
                               <Flex alignItems="center" gap={4}>
-                                {data.hasOwnProperty(file.name) &&
+                                {/* {data.hasOwnProperty(file.name) &&
                                 data[file.name] &&
-                                data[file.name].data === "Success" ? (
-                                  <CheckCircleRoundedIcon
-                                    style={{ color: "#1FAF10" }}
-                                  />
-                                ) : (
+                                data[file.name].data === "Success" ? ( */}
+                                <CheckCircleRoundedIcon
+                                  style={{ color: "#1FAF10" }}
+                                />
+                                {/* ) : (
                                   <RemoveCircleRoundedIcon
                                     style={{ color: "#BF0026" }}
                                   />
-                                )}
-                                {data.hasOwnProperty(file.name) &&
-                                data[file.name] === null ? (
-                                  <Text variant="body6">{`${
-                                    file.name
-                                  } ] ${fileSizeToMB(file.size)} MB`}</Text>
-                                ) : data[file.name] &&
+                                )} */}
+                                {/* {data.hasOwnProperty(file.name) &&
+                                data[file.name] === null ? ( */}
+                                <Text variant="body6">{`${
+                                  file.name
+                                } ] ${fileSizeToMB(file.size)} MB`}</Text>
+                                {/* ) : data[file.name] &&
                                   data[file.name].data === "Error" ? (
                                   <Text variant="body6" color="primary.main">
                                     {`${file.name} has errors`}
@@ -539,75 +599,71 @@ const BTITool = () => {
                                       file.size
                                     )} MB`}
                                   </Text>
-                                )}
+                                )} */}
                               </Flex>
                               <Flex gap={6}>
-                                {data.hasOwnProperty(file.name) &&
+                                {/* {data.hasOwnProperty(file.name) &&
                                 data[file.name] === null ? (
                                   <Text>Scanning...</Text>
-                                ) : (
-                                  <>
-                                    {!upload && (
-                                      <Flex
-                                        cursor="pointer"
-                                        gap={2}
-                                        justifyContent="space-between"
-                                        alignItems="center"
-                                        onClick={() => removeFile(i)}
-                                      >
-                                        <DeleteOutlineRoundedIcon
-                                          style={{
-                                            color: "#455468",
-                                            fontSize: "20px",
-                                          }}
-                                        />
-                                        <Text variant="subtitle1">Remove</Text>
-                                      </Flex>
-                                    )}
-                                    <Flex
-                                      onClick={() =>
-                                        setViewFileDialog({
-                                          open: true,
-                                          data: null,
-                                        })
+                                ) : ( */}
+                                <>
+                                  {/* {!s3FileList.includes(file.name) && ( */}
+                                  <Flex
+                                    cursor="pointer"
+                                    gap={2}
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                    onClick={() => {
+                                      setSaved(false);
+                                      removeFile(i);
+                                    }}
+                                  >
+                                    <DeleteOutlineRoundedIcon
+                                      style={{
+                                        color: "#455468",
+                                        fontSize: "20px",
+                                      }}
+                                    />
+                                    <Text variant="subtitle1">Remove</Text>
+                                  </Flex>
+                                  {/* )} */}
+                                  <Flex
+                                    onClick={() =>
+                                      setViewFileDialog({
+                                        open: true,
+                                        data: null,
+                                      })
+                                    }
+                                    cursor={
+                                      s3FileList.includes(file.name)
+                                        ? "pointer"
+                                        : "no-drop"
+                                    }
+                                    gap={2}
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                  >
+                                    <VisibilityOutlinedIcon
+                                      style={{
+                                        color: s3FileList.includes(file.name)
+                                          ? "#BF0026"
+                                          : "gray",
+                                        fontSize: "20px",
+                                      }}
+                                    />
+                                    <Text
+                                      variant="subtitle1"
+                                      color={
+                                        s3FileList.includes(file.name)
+                                          ? "primary.main"
+                                          : "gray"
                                       }
-                                      cursor={
-                                        data.hasOwnProperty(file.name) &&
-                                        data[file.name] &&
-                                        data[file.name].data === "Success"
-                                          ? "pointer"
-                                          : "no-drop"
-                                      }
-                                      gap={2}
-                                      justifyContent="space-between"
-                                      alignItems="center"
                                     >
-                                      <VisibilityOutlinedIcon
-                                        style={{
-                                          color:
-                                            data.hasOwnProperty(file.name) &&
-                                            data[file.name] &&
-                                            data[file.name].data === "Success"
-                                              ? "#BF0026"
-                                              : "gray",
-                                          fontSize: "20px",
-                                        }}
-                                      />
-                                      <Text
-                                        variant="subtitle1"
-                                        color={
-                                          data.hasOwnProperty(file.name) &&
-                                          data[file.name] &&
-                                          data[file.name].data === "Success"
-                                            ? "primary.main"
-                                            : "gray"
-                                        }
-                                      >
-                                        View
-                                      </Text>
-                                    </Flex>
-                                  </>
-                                )}
+                                      View
+                                    </Text>
+                                  </Flex>
+                                </>
+                                {/* )} */}
                               </Flex>
                             </Flex>
                           );
@@ -622,13 +678,30 @@ const BTITool = () => {
         </Flex>
         <Flex justifyContent="center" alignItems="center" mt="0">
           <Flex w="70%" justifyContent="flex-end">
-            <Button mr={4} w="25%" onClick={saveRequest}>
+            <Button
+              mr={4}
+              w="25%"
+              cursor={loadingSave ? "no-drop" : "pointer"}
+              onClick={() => {
+                if (!loadingSave && !saved) saveRequest();
+              }}
+              rightIcon={
+                loadingSave && (
+                  <CircularProgress
+                    isIndeterminate
+                    color="primary.main"
+                    size="24px"
+                  />
+                )
+              }
+            >
               Save Request
             </Button>
             <Button
+              cursor={saved ? "pointer" : "no-drop"}
               w="25%"
               onClick={() => {
-                handleProcessRequest();
+                if (saved) handleProcessRequest();
               }}
             >
               Process Request
@@ -655,6 +728,7 @@ const BTITool = () => {
         onClose={() => setGenerateInsightsDialog({ open: false, data: null })}
       />
       <ApplicationExistDialog
+        getUniqueInstanceId={getUniqueInstanceId}
         open={applicationDialog.open}
         data={applicationDialog.data}
         formData={formData}
