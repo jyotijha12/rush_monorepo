@@ -94,8 +94,10 @@ const ApplicationTable = (props) => {
                     <Td fontSize="14px">{item.user}</Td>
                     <Td fontSize="14px">{item.status}</Td>
                     <Td fontSize="14px">
-                      {item.errors.length > 0
-                        ? item.errors[0] + "..."
+                      {item.errors.length > 0 || item.warnings.length > 0
+                        ? item.errors.length > 0
+                          ? item.errors[0].error_code + "..."
+                          : item.warnings[0].warning_code + "..."
                         : "No Errors"}
                     </Td>
                     <Td>
@@ -104,7 +106,14 @@ const ApplicationTable = (props) => {
                           fontSize="14px"
                           textDecoration="underline"
                           cursor="pointer"
-                          onClick={() => navigate("/bti-tool/tableau")}
+                          onClick={
+                            (() => navigate("/bti-tool/tableau"),
+                            {
+                              state: {
+                                rowData: item,
+                              },
+                            })
+                          }
                         >
                           View details
                         </Text>

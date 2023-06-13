@@ -4,6 +4,7 @@ import EXL from "../../Resources/EXLLogo.svg";
 import Lock from "../../Resources/CircleLock.svg";
 import Logout from "../../Resources/SignOutLogout.svg";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const useStyles = () => ({
   appbar: {
@@ -27,27 +28,28 @@ const AppBar = () => {
   const navigate = useNavigate();
 
   const logoutUser = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("token");
-    window.location.pathname = `/absa`;
-    // const token = JSON.parse(localStorage.getItem("token"))["data"];
+    const token = JSON.parse(sessionStorage.getItem("token"))["data"];
 
-    // let config = {
-    //   method: "post",
-    //   url: `${process.env.REACT_APP_BASE_AUTHENTICATION_URL}/auth/user_logout/`,
-    //   headers: {
-    //     Authorization: `Bearer ${token.access_token}`,
-    //     custom: `Bearer ${token.access_token}`,
-    //   },
-    // };
-    // axios
-    //   .request(config)
-    //   .then(() => {
-    //     localStorage.removeItem("isLoggedIn");
-    //     localStorage.removeItem("token");
-    //     window.location.pathname = `/absa`;
-    //   })
-    //   .catch(() => {});
+    let config = {
+      method: "post",
+      url: `${process.env.REACT_APP_BASE_AUTHENTICATION_URL}/auth/user_logout/`,
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+        custom: `Bearer ${token.access_token}`,
+      },
+    };
+    axios
+      .request(config)
+      .then(() => {
+        sessionStorage.removeItem("isLoggedIn");
+        sessionStorage.removeItem("token");
+        window.location.pathname = `/absa`;
+      })
+      .catch(() => {
+        sessionStorage.removeItem("isLoggedIn");
+        sessionStorage.removeItem("token");
+        window.location.pathname = `/absa`;
+      });
   };
 
   return (
