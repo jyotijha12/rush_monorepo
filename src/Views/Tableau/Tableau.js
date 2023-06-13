@@ -97,11 +97,7 @@ const Tableau = () => {
                 <Flex w="100%" px={20} py={10} justifyContent="center">
                   {value !== "" ? (
                     <Flex gap={8} flexDir="column">
-                      <TableauReport
-                        options={options}
-                        url={value}
-                        onLoad={(e) => console.log(e)}
-                      />
+                      <TableauReport options={options} url={value} />
                       <Flex justifyContent="flex-end">
                         <Button
                           w="20%"
