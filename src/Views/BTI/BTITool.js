@@ -21,10 +21,10 @@ import ApplicationExistDialog from "../../Components/Dialog/ApplicationExistDial
 import Select from "react-select";
 import { uploadFile } from "../../utils/S3/uploadFile";
 // import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
-import axios from "axios";
 import { listFilesObject } from "../../utils/S3/listFilesObject";
 import { listFiles } from "../../utils/S3/listFiles";
 import { fetchErrorFile } from "../../utils/S3/fetchErrorFile";
+import { axiosInstance } from "../../utils/Axios/axiosInstance";
 
 const BTITool = () => {
   const [uploaderDialog, setUploaderDialog] = useState({
@@ -74,21 +74,17 @@ const BTITool = () => {
   const saveFiles = async (id) => {
     if (id) {
       await uploadFile(formData.applicationId, id, files);
-
       const fileList = await listFiles(
         `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
       );
-
       setS3FileList(fileList);
 
       const filesObject = await listFilesObject(
         `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
       );
-
       setFiles(filesObject);
 
-      const token = JSON.parse(sessionStorage.getItem("token"))["data"];
-      let data_ = JSON.stringify({
+      let data_ = {
         instance_unique_id: id,
         instance_id: formData.instanceId,
         application_id: formData.applicationId,
@@ -96,47 +92,48 @@ const BTITool = () => {
         use_case_id: formData.type,
         create_new_instance:
           location.state && location.state.rowData ? false : true,
-      });
+      };
 
       let config = {
         method: "post",
-        url: `${process.env.REACT_APP_BASE_API_URL}/api/upload_data/`,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token.access_token}`,
-        },
+        url: `/api/upload_data/`,
         data: data_,
       };
-
-      axios
+      axiosInstance
         .request(config)
         .then(async () => {
           const filesObject = await listFilesObject(
             `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
           );
-
           setFiles(filesObject);
           setLoadingSave(false);
+          toast({
+            title: "Saved Request",
+            description: "All files saved successfully",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+
+          const fileData = await fetchErrorFile(
+            `${formData.applicationId}/${id}`
+          );
+          console.log("error file data :", fileData);
         })
         .catch(() => {
           setLoadingSave(false);
+          toast({
+            title: "Failed",
+            description: "Failed",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
         });
-      toast({
-        title: "Saved Request",
-        description: "All files saved successfully",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-
-      const fileData = await fetchErrorFile(`${formData.applicationId}/${id}`);
-      console.log("error file data :", fileData);
     }
   };
 
   const getUniqueInstanceId = (params) => {
-    const token = JSON.parse(sessionStorage.getItem("token"))["data"];
-
     let data = new FormData();
     data.append("application_id", formData.applicationId);
     location.state && data.append("instance_id", formData.instanceId);
@@ -144,13 +141,10 @@ const BTITool = () => {
 
     let config = {
       method: "post",
-      url: `${process.env.REACT_APP_BASE_API_URL}/api/provide_uid/`,
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-      },
+      url: `/api/provide_uid/`,
       data: data,
     };
-    axios
+    axiosInstance
       .request(config)
       .then((response) => {
         setFormData({
@@ -159,8 +153,12 @@ const BTITool = () => {
         });
         setUniqueInstanceId(response.data.data.instance_unique_id);
 
-        params && saveFiles(response.data.data.instance_unique_id);
-        !params && setLoadingSave(false);
+        if (params) {
+          saveFiles(response.data.data.instance_unique_id);
+          setSaved(true);
+        }
+
+        setLoadingSave(false);
       })
       .catch(() => {
         setLoadingSave(false);
@@ -177,22 +175,6 @@ const BTITool = () => {
 
   useEffect(() => {
     if (location.state && location.state.rowData) {
-      const getFiles = async () => {
-        const filesObject = await listFilesObject(
-          `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${location.state.rowData.instance_unique_id}`
-        );
-
-        setFiles(filesObject);
-
-        const fileList = await listFiles(
-          `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${location.state.rowData.instance_unique_id}`
-        );
-
-        setS3FileList(fileList);
-      };
-
-      getFiles();
-
       if (location.state.rowData.status === "Processing") {
         setGenerateInsightsDialog({ open: true, data: null });
       }
@@ -202,26 +184,51 @@ const BTITool = () => {
         instanceId: location.state.rowData.instance_id,
         type: location.state.rowData.use_case_id,
       });
+
+      const getFiles = async () => {
+        let data = new FormData();
+        data.append("application_id", location.state.rowData.application_id);
+        data.append("instance_id", location.state.rowData.instance_id);
+
+        let config = {
+          method: "post",
+          url: `/api/get_data/`,
+          data: data,
+        };
+        axiosInstance
+          .request(config)
+          .then(async (response) => {
+            const data = response.data.data[0];
+            const filesObject = await listFilesObject(
+              `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
+            );
+            setFiles(filesObject);
+
+            const fileList = await listFiles(
+              `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
+            );
+            setS3FileList(fileList);
+          })
+          .catch(() => {});
+      };
+
+      getFiles();
     }
 
     // eslint-disable-next-line
   }, [location.state]);
 
   const fetchData = (params) => {
-    const token = JSON.parse(sessionStorage.getItem("token"))["data"];
     let data = new FormData();
     data.append("application_id", formData.applicationId.substring(0, 10));
     params && data.append("instance_id", formData.instanceId);
 
     let config = {
       method: "post",
-      url: `${process.env.REACT_APP_BASE_API_URL}/api/get_data/`,
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-      },
+      url: `/api/get_data/`,
       data: data,
     };
-    axios
+    axiosInstance
       .request(config)
       .then((response) => {
         if (params) {
@@ -277,7 +284,6 @@ const BTITool = () => {
                 renamedFile = new File([uploadedFile], newFileName);
                 break;
               }
-
               copyCounter++;
             }
           }
@@ -393,11 +399,67 @@ const BTITool = () => {
     }
   };
 
+  //////////
+
+  const checkStatus = () => {
+    const intervalTime = 10000;
+    const totalTime = 60000;
+    let elapsedTime = 0;
+    let pollingInterval;
+
+    const wait = () => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const data = fetchData(true);
+          resolve(data);
+        }, 2000);
+      });
+    };
+
+    const checkStatus = (data) => {
+      if (data.status === "Complete") {
+        clearInterval(pollingInterval);
+        setGenerateInsightsDialog({ open: false, data: null });
+        navigate("tableau", { state: { rowData: data } });
+      } else {
+        elapsedTime += intervalTime;
+        if (elapsedTime >= totalTime) {
+          clearInterval(pollingInterval);
+          navigate("/recent-applications");
+        } else {
+          fetchDataFunc().then((response) => {
+            if (response.status === "Complete") {
+              clearInterval(pollingInterval);
+              setGenerateInsightsDialog({ open: false, data: null });
+              navigate("tableau", { state: { rowData: data } });
+            }
+          });
+        }
+      }
+    };
+
+    const fetchDataFunc = () => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const data = fetchData(true);
+          resolve(data);
+        }, 0);
+      });
+    };
+
+    pollingInterval = setInterval(() => {
+      wait().then((data) => {
+        checkStatus(data);
+      });
+    }, intervalTime);
+  };
+
+  //////
+
   const handleProcessRequest = async () => {
     if (isValid()) {
       setSaved(true);
       setGenerateInsightsDialog({ open: true, data: null });
-      const token = JSON.parse(sessionStorage.getItem("token"))["data"];
 
       let data = new FormData();
       data.append("application_id", formData.applicationId);
@@ -406,21 +468,23 @@ const BTITool = () => {
 
       let config = {
         method: "post",
-        url: `${process.env.REACT_APP_BASE_API_URL}/api/process_data/`,
-        headers: { Authorization: `Bearer ${token.access_token}` },
+        url: `/api/process_data/`,
         data: data,
       };
-
-      axios
+      axiosInstance
         .request(config)
-        .then(async () => {
-          const data = await fetchData(true);
-          if (data.status === "Complete") {
-            setGenerateInsightsDialog({ open: false, data: null });
-            navigate("tableau", { state: { rowData: data } });
-          } else {
-            navigate("/recent-applications");
-          }
+        .then(() => {
+          checkStatus();
+          // const temoFunc = async () => {
+          //   const data = await fetchData(true);
+          //   if (data.status === "Complete") {
+          //     setGenerateInsightsDialog({ open: false, data: null });
+          //     navigate("tableau", { state: { rowData: data } });
+          //   } else {
+          //     navigate("/recent-applications");
+          //   }
+          // };
+          // temoFunc();
         })
         .catch(() => {
           // setGenerateInsightsDialog({ open: false, data: null });
@@ -476,7 +540,6 @@ const BTITool = () => {
                   <Text variant="body1semiBold">Type</Text>
                   <Select
                     value={formData.type}
-                    // isDisabled={location.state && location.state.rowData}
                     placeholder="Select the type of application"
                     styles={customStyles}
                     isClearable
