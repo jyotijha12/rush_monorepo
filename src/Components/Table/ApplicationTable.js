@@ -90,7 +90,8 @@ const ApplicationTable = (props) => {
                   <Tr key={i}>
                     <Td fontSize="14px">
                       <Tooltip hasArrow label={item.application_id}>
-                        {item.application_id.substring(0, 10) + "..."}
+                        {`${item.application_id.substring(0, 10)} 
+                          ${item.application_id.length > 10 ? "..." : ""}`}
                       </Tooltip>
                     </Td>
                     <Td fontSize="14px" textAlign="center">
