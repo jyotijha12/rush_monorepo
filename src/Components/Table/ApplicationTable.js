@@ -18,6 +18,7 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -87,15 +88,22 @@ const ApplicationTable = (props) => {
               {paginatedData.map((item, i) => {
                 return (
                   <Tr key={i}>
-                    <Td fontSize="14px">{item.application_id}</Td>
+                    <Td fontSize="14px">
+                      <Tooltip hasArrow label={item.application_id}>
+                        {`${item.application_id.substring(0, 10)} 
+                          ${item.application_id.length > 10 ? "..." : ""}`}
+                      </Tooltip>
+                    </Td>
                     <Td fontSize="14px" textAlign="center">
                       {item.instance_id}
                     </Td>
                     <Td fontSize="14px">{item.user}</Td>
                     <Td fontSize="14px">{item.status}</Td>
                     <Td fontSize="14px">
-                      {item.errors.length > 0
-                        ? item.errors[0] + "..."
+                      {item.errors.length > 0 || item.warnings.length > 0
+                        ? item.errors.length > 0
+                          ? item.errors[0].error_code + "..."
+                          : item.warnings[0].warning_code + "..."
                         : "No Errors"}
                     </Td>
                     <Td>
@@ -104,7 +112,14 @@ const ApplicationTable = (props) => {
                           fontSize="14px"
                           textDecoration="underline"
                           cursor="pointer"
-                          onClick={() => navigate("/bti-tool/tableau")}
+                          onClick={
+                            (() => navigate("/bti-tool/tableau"),
+                            {
+                              state: {
+                                rowData: item,
+                              },
+                            })
+                          }
                         >
                           View details
                         </Text>

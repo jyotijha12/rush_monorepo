@@ -42,6 +42,7 @@ const ApplicationExistDialog = (props) => {
                     props.setFormData({
                       ...props.formData,
                       applicationId: "",
+                      instanceId: "1",
                     });
                     props.onClose();
                   }}
@@ -50,11 +51,8 @@ const ApplicationExistDialog = (props) => {
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => {
-                    props.setFormData({
-                      ...props.formData,
-                      instanceId: Number(props.formData.instanceId) + 1,
-                    });
+                  onClick={async () => {
+                    await props.getUniqueInstanceId(false);
                     props.onClose();
                   }}
                 >

@@ -8,10 +8,10 @@ import {
   Text,
 } from "@chakra-ui/react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApplicationTable from "../../Components/Table/ApplicationTable";
+import { axiosInstance } from "../../utils/Axios/axiosInstance";
 
 const RecentApplications = () => {
   const [search, setSearch] = useState("");
@@ -20,7 +20,6 @@ const RecentApplications = () => {
   const navigate = useNavigate();
 
   const fetchData = (application_id) => {
-    const token = JSON.parse(localStorage.getItem("token"))["data"];
     let data = new FormData();
     application_id && data.append("application_id", application_id);
     data.append("page_number", "1");
@@ -29,13 +28,10 @@ const RecentApplications = () => {
 
     let config = {
       method: "post",
-      url: `${process.env.REACT_APP_BASE_API_URL}/api/get_data/`,
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-      },
+      url: `/api/get_data/`,
       data: data,
     };
-    axios
+    axiosInstance
       .request(config)
       .then((response) => {
         setFilteredData(response.data.data);
@@ -73,7 +69,7 @@ const RecentApplications = () => {
     <Box mb={4}>
       <Flex justifyContent="center" alignItems="center" h="100%" pt={8} pb={6}>
         <Flex
-          w="80%"
+          w="85%"
           h="100%"
           border="4px solid"
           borderColor="primary.main"
@@ -89,7 +85,7 @@ const RecentApplications = () => {
         </Flex>
       </Flex>
       <Flex justifyContent="center">
-        <Flex w="70%" flexDir="column" gap={4}>
+        <Flex w="75%" flexDir="column" gap={4}>
           <Text variant="body2">Recent Applications</Text>
           <Flex gap={4}>
             <Flex flexDir="column" gap={1} w="55%">

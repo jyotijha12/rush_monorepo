@@ -16,7 +16,7 @@ const Login = () => {
 
   const login = () => {
     window.location.replace(
-      `https://3.211.184.2:9443/oauth2/authorize?response_type=code&client_id=${process.env.REACT_APP_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=openid`
+      `${process.env.REACT_APP_WSO2_URI}?response_type=code&client_id=${process.env.REACT_APP_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=openid`
     );
   };
 
@@ -41,9 +41,10 @@ const Login = () => {
           justifyContent="center"
           alignItems="center"
         >
-          <Input placeholder="Username" variant="flushed" w="60%" />
+          <Input placeholder="Username" variant="flushed" w="60%" isDisabled />
           <InputGroup w="60%">
             <Input
+              isDisabled
               variant="flushed"
               type={show ? "text" : "password"}
               placeholder="Password"

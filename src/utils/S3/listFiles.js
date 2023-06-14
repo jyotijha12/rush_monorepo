@@ -16,8 +16,6 @@ export const listFiles = async (path) => {
   try {
     const response = await s3.listObjectsV2(listParams).promise();
     const fileList = response.Contents.map((file) => file.Key.split("/").pop());
-    return fileList;
-  } catch (error) {
-    console.error("Error listing files:", error);
-  }
+    return fileList.filter(Boolean);
+  } catch (error) {}
 };
