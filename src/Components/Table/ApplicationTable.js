@@ -62,7 +62,7 @@ const ApplicationTable = (props) => {
   return (
     <>
       <TableContainer
-        h="73vh"
+        h="70vh"
         style={{ overflow: "auto" }}
         border="1px solid"
         borderColor="custom.main"
@@ -88,33 +88,34 @@ const ApplicationTable = (props) => {
               {paginatedData.map((item, i) => {
                 return (
                   <Tr key={i}>
-                    <Td fontSize="14px">
+                    <Td fontSize="13.5px">
                       <Tooltip hasArrow label={item.application_id}>
                         {`${item.application_id.substring(0, 10)} 
                           ${item.application_id.length > 10 ? "..." : ""}`}
                       </Tooltip>
                     </Td>
-                    <Td fontSize="14px" textAlign="center">
+                    <Td fontSize="13.5px" textAlign="center">
                       {item.instance_id}
                     </Td>
-                    <Td fontSize="14px">{item.user}</Td>
-                    <Td fontSize="14px">{item.status}</Td>
-                    <Td fontSize="14px">
+                    <Td fontSize="13.5px">{item.user}</Td>
+                    <Td fontSize="13.5px">{item.status}</Td>
+                    <Td fontSize="13.5px">
                       {item.errors.length > 0 || item.warnings.length > 0
                         ? item.errors.length > 0
-                          ? item.errors[0].error_code + "..."
-                          : item.warnings[0].warning_code + "..."
+                          ? item.errors[0].external_error.substring(0, 10) +
+                            "..."
+                          : item.warnings[0].external_warning.substring(0, 10) +
+                            "..."
                         : "No Errors"}
                     </Td>
                     <Td>
                       {item.status === "Complete" ? (
                         <Text
-                          fontSize="14px"
+                          fontSize="13.5px"
                           textDecoration="underline"
                           cursor="pointer"
-                          onClick={
-                            (() => navigate("/bti-tool/tableau"),
-                            {
+                          onClick={() =>
+                            navigate("/bti-tool/tableau", {
                               state: {
                                 rowData: item,
                               },
@@ -125,7 +126,7 @@ const ApplicationTable = (props) => {
                         </Text>
                       ) : item.status === "Saved" ? (
                         <Text
-                          fontSize="14px"
+                          fontSize="13.5px"
                           textDecoration="underline"
                           cursor="pointer"
                           onClick={() =>
@@ -139,10 +140,10 @@ const ApplicationTable = (props) => {
                           Process Request
                         </Text>
                       ) : (
-                        <Text fontSize="14px">Processing...</Text>
+                        <Text fontSize="13.5px">Processing...</Text>
                       )}
                     </Td>
-                    <Td fontSize="14px">
+                    <Td fontSize="13.5px">
                       {moment(item.modified_at).format("YYYY-MM-DD HH:mm:ss")}
                     </Td>
                   </Tr>
