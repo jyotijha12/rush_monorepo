@@ -42,24 +42,28 @@ const Login = () => {
           justifyContent="center"
           alignItems="center"
         >
-          <Select
-            variant="flushed"
-            w="60%"
-            placeholder="Organization"
-            boxShadow="none"
-            borderColor="custom.main"
-            _focusVisible={{
-              borderColor: "custom.main",
-              boxShadow: "none",
-            }}
-            _hover={{
-              borderColor: "custom.main",
-              boxShadow: "none",
-            }}
-          >
-            <option>ABSA</option>
-            <option>EXL</option>
-          </Select>
+          <Flex w="60%" alignItems="end" gap={2}>
+            <Text>Organization</Text>
+            {":"}
+            <Select
+              ml={8}
+              w="100%"
+              variant="flushed"
+              boxShadow="none"
+              borderColor="custom.main"
+              _focusVisible={{
+                borderColor: "custom.main",
+                boxShadow: "none",
+              }}
+              _hover={{
+                borderColor: "custom.main",
+                boxShadow: "none",
+              }}
+            >
+              <option>ABSA</option>
+              <option>EXL</option>
+            </Select>
+          </Flex>
           <Input placeholder="Username" variant="flushed" w="60%" isDisabled />
           <InputGroup w="60%">
             <Input
