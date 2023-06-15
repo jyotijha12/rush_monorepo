@@ -20,7 +20,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ApplicationExistDialog from "../../Components/Dialog/ApplicationExistDialog";
 import Select from "react-select";
 import { uploadFile } from "../../utils/S3/uploadFile";
-// import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
+import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
 import { listFilesObject } from "../../utils/S3/listFilesObject";
 import { listFiles } from "../../utils/S3/listFiles";
 import { fetchErrorFile } from "../../utils/S3/fetchErrorFile";
@@ -54,6 +54,9 @@ const BTITool = () => {
   const [uniqueInstanceId, setUniqueInstanceId] = useState("");
   const [loadingSave, setLoadingSave] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [errorData, setErrorData] = useState(null);
+  const [fileLoading, setFileLoading] = useState(false);
+  const [scanFailed, setScanFailed] = useState(false);
 
   const navigate = useNavigate();
 
@@ -62,13 +65,13 @@ const BTITool = () => {
   const location = useLocation();
 
   const types = [
-    { label: "Consumer (Salaried-Full Time Employed)", value: "x001Aba01" },
-    { label: "Pensioner", value: "x001Aba01" },
-    { label: "Temporary Employed", value: "x001Aba01" },
-    { label: "Student", value: "x001Aba01" },
-    { label: "Self Employed Professional", value: "x001Aba01" },
-    { label: "Self Employed Non-Professional", value: "x001Aba01" },
-    { label: "Solo Proprietors", value: "x001Aba01" },
+    { label: "Consumer (Salaried-Full Time Employed)", value: "P00ABgA04" },
+    { label: "Pensioner", value: "S00ABgA04" },
+    { label: "Temporary Employed", value: "Q00ABgA04" },
+    { label: "Student", value: "R00ABgA04" },
+    { label: "Self Employed Professional", value: "M00ABgA04" },
+    { label: "Self Employed Non-Professional", value: "N00ABgA04" },
+    { label: "Solo Proprietors", value: "T00ABgA04" },
   ];
 
   const saveFiles = async (id) => {
@@ -90,8 +93,7 @@ const BTITool = () => {
         application_id: formData.applicationId,
         input_files: files.map((item) => item.name),
         use_case_id: formData.type,
-        create_new_instance:
-          location.state && location.state.rowData ? false : true,
+        create_new_instance: false,
       };
 
       let config = {
@@ -106,19 +108,33 @@ const BTITool = () => {
             `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
           );
           setFiles(filesObject);
-          setLoadingSave(false);
-          toast({
-            title: "Saved Request",
-            description: "All files saved successfully",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
 
           const fileData = await fetchErrorFile(
             `${formData.applicationId}/${id}`
           );
-          console.log("error file data :", fileData);
+
+          setErrorData(fileData ? fileData : null);
+          if (fileData) {
+            setLoadingSave(false);
+            setSaved(true);
+            toast({
+              title: "Saved Request",
+              description: "All files saved successfully",
+              status: "success",
+              duration: 5000,
+              isClosable: true,
+            });
+          } else {
+            setLoadingSave(false);
+            setScanFailed(true);
+            toast({
+              title: "Scanning failed",
+              description: "Retry save request",
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+            });
+          }
         })
         .catch(() => {
           setLoadingSave(false);
@@ -133,11 +149,11 @@ const BTITool = () => {
     }
   };
 
-  const getUniqueInstanceId = (params) => {
+  const getUniqueInstanceId = (params, create) => {
     let data = new FormData();
     data.append("application_id", formData.applicationId);
-    location.state && data.append("instance_id", formData.instanceId);
-    data.append("create_new_instance", location.state ? false : true);
+    data.append("instance_id", formData.instanceId);
+    data.append("create_new_instance", create === "Add" ? true : false);
 
     let config = {
       method: "post",
@@ -155,10 +171,7 @@ const BTITool = () => {
 
         if (params) {
           saveFiles(response.data.data.instance_unique_id);
-          setSaved(true);
         }
-
-        setLoadingSave(false);
       })
       .catch(() => {
         setLoadingSave(false);
@@ -175,6 +188,8 @@ const BTITool = () => {
 
   useEffect(() => {
     if (location.state && location.state.rowData) {
+      setSaved(true);
+      setFileLoading(true);
       if (location.state.rowData.status === "Processing") {
         setGenerateInsightsDialog({ open: true, data: null });
       }
@@ -184,6 +199,7 @@ const BTITool = () => {
         instanceId: location.state.rowData.instance_id,
         type: location.state.rowData.use_case_id,
       });
+      setUniqueInstanceId(location.state.rowData.instance_unique_id);
 
       const getFiles = async () => {
         let data = new FormData();
@@ -198,6 +214,10 @@ const BTITool = () => {
         axiosInstance
           .request(config)
           .then(async (response) => {
+            if (response.data.data[0].status === "Processing") {
+              setGenerateInsightsDialog({ open: true, data: null });
+            }
+
             const data = response.data.data[0];
             const filesObject = await listFilesObject(
               `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
@@ -208,13 +228,20 @@ const BTITool = () => {
               `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
             );
             setS3FileList(fileList);
+
+            const fileData = await fetchErrorFile(
+              `${location.state.rowData.application_id}/${data.instance_unique_id}`
+            );
+            setFileLoading(false);
+            setErrorData(fileData ? fileData : null);
           })
-          .catch(() => {});
+          .catch(() => {
+            setFileLoading(false);
+          });
       };
 
       getFiles();
     }
-
     // eslint-disable-next-line
   }, [location.state]);
 
@@ -234,7 +261,10 @@ const BTITool = () => {
         if (params) {
           return response.data.data;
         } else {
-          if (response.data.data.length > 0) {
+          if (
+            response.data.data.length > 0 &&
+            response.data.data[0].application_id === formData.applicationId
+          ) {
             setApplicationDialog({ open: true, data: null });
           }
         }
@@ -311,7 +341,10 @@ const BTITool = () => {
 
   useEffect(() => {
     if (!location.state)
-      if (formData.applicationId.length === 10) {
+      if (
+        formData.applicationId.length === 10 ||
+        formData.applicationId.length === 16
+      ) {
         fetchData();
       }
     // eslint-disable-next-line
@@ -319,8 +352,11 @@ const BTITool = () => {
 
   useEffect(() => {
     const getList = async () => {
-      if (formData.applicationId.length === 10) {
-        getUniqueInstanceId(false);
+      if (
+        formData.applicationId.length === 10 ||
+        formData.applicationId.length === 16
+      ) {
+        !location.state && getUniqueInstanceId(false);
         const fileList = await listFiles(
           `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${uniqueInstanceId}`
         );
@@ -366,8 +402,12 @@ const BTITool = () => {
 
     if (!formData.applicationId.trim()) {
       newErrors.applicationId = "Application number is required.";
-    } else if (formData.applicationId.trim().length !== 10) {
-      newErrors.applicationId = "Application number should be 10 digits.";
+    } else if (
+      formData.applicationId.trim().length !== 10 &&
+      formData.applicationId.trim().length !== 16
+    ) {
+      newErrors.applicationId =
+        "Application number should be 10 digits or 16 digits.";
     }
 
     if (!formData.type) {
@@ -399,62 +439,41 @@ const BTITool = () => {
     }
   };
 
-  //////////
-
   const checkStatus = () => {
     const intervalTime = 10000;
-    const totalTime = 60000;
+    const totalTime = 120000;
     let elapsedTime = 0;
     let pollingInterval;
 
-    const wait = () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const data = fetchData(true);
-          resolve(data);
-        }, 2000);
-      });
-    };
-
-    const checkStatus = (data) => {
-      if (data.status === "Complete") {
-        clearInterval(pollingInterval);
-        setGenerateInsightsDialog({ open: false, data: null });
-        navigate("tableau", { state: { rowData: data } });
-      } else {
-        elapsedTime += intervalTime;
-        if (elapsedTime >= totalTime) {
-          clearInterval(pollingInterval);
-          navigate("/recent-applications");
-        } else {
-          fetchDataFunc().then((response) => {
-            if (response.status === "Complete") {
-              clearInterval(pollingInterval);
-              setGenerateInsightsDialog({ open: false, data: null });
-              navigate("tableau", { state: { rowData: data } });
-            }
-          });
-        }
-      }
-    };
-
     const fetchDataFunc = () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const data = fetchData(true);
-          resolve(data);
-        }, 0);
+      let data = new FormData();
+      data.append("application_id", formData.applicationId);
+      data.append("instance_id", formData.instanceId);
+      let config = {
+        method: "post",
+        url: `/api/get_data/`,
+        data: data,
+      };
+      axiosInstance.request(config).then((response) => {
+        const responseData = response.data.data[0];
+        if (responseData.status === "Complete") {
+          clearInterval(pollingInterval);
+          setGenerateInsightsDialog({ open: false, data: null });
+          navigate("tableau", { state: { rowData: responseData } });
+        } else {
+          elapsedTime += intervalTime;
+          if (elapsedTime >= totalTime) {
+            clearInterval(pollingInterval);
+            navigate("/recent-applications");
+          }
+        }
       });
     };
 
-    pollingInterval = setInterval(() => {
-      wait().then((data) => {
-        checkStatus(data);
-      });
-    }, intervalTime);
-  };
+    fetchDataFunc();
 
-  //////
+    pollingInterval = setInterval(fetchDataFunc, intervalTime);
+  };
 
   const handleProcessRequest = async () => {
     if (isValid()) {
@@ -475,20 +494,8 @@ const BTITool = () => {
         .request(config)
         .then(() => {
           checkStatus();
-          // const temoFunc = async () => {
-          //   const data = await fetchData(true);
-          //   if (data.status === "Complete") {
-          //     setGenerateInsightsDialog({ open: false, data: null });
-          //     navigate("tableau", { state: { rowData: data } });
-          //   } else {
-          //     navigate("/recent-applications");
-          //   }
-          // };
-          // temoFunc();
         })
-        .catch(() => {
-          // setGenerateInsightsDialog({ open: false, data: null });
-        });
+        .catch(() => {});
     }
   };
 
@@ -522,7 +529,7 @@ const BTITool = () => {
                 </Flex>
                 <Input
                   isDisabled={location.state && location.state.rowData}
-                  maxLength={10}
+                  maxLength={16}
                   value={formData.applicationId}
                   onChange={(e) =>
                     setFormData({ ...formData, applicationId: e.target.value })
@@ -615,7 +622,17 @@ const BTITool = () => {
                     alignItems="center"
                   >
                     <Flex flexDir="column" w="100%" h="100%" gap={6}>
-                      {loading ? (
+                      {fileLoading ? (
+                        <Flex gap={4} alignItems="center">
+                          <CircularProgress
+                            isIndeterminate
+                            color="#1FAF10"
+                            thickness="8px"
+                            size="40px"
+                          />
+                          <Text variant="body6">Fetching files</Text>
+                        </Flex>
+                      ) : loading ? (
                         <Flex gap={4} alignItems="center">
                           <CircularProgress
                             isIndeterminate
@@ -635,26 +652,34 @@ const BTITool = () => {
                               w="100%"
                             >
                               <Flex alignItems="center" gap={4}>
-                                {/* {data.hasOwnProperty(file.name) &&
-                                data[file.name] &&
-                                data[file.name].data === "Success" ? ( */}
-                                <CheckCircleRoundedIcon
-                                  style={{ color: "#1FAF10" }}
-                                />
-                                {/* ) : (
-                                  <RemoveCircleRoundedIcon
-                                    style={{ color: "#BF0026" }}
+                                {errorData &&
+                                errorData.hasOwnProperty(file.name) ? (
+                                  errorData[file.name] &&
+                                  errorData[file.name] === "success" ? (
+                                    <CheckCircleRoundedIcon
+                                      style={{ color: "#1FAF10" }}
+                                    />
+                                  ) : (
+                                    <RemoveCircleRoundedIcon
+                                      style={{ color: "#BF0026" }}
+                                    />
+                                  )
+                                ) : (
+                                  <CheckCircleRoundedIcon
+                                    style={{ color: "#1FAF10" }}
                                   />
-                                )} */}
-                                {/* {data.hasOwnProperty(file.name) &&
-                                data[file.name] === null ? ( */}
-                                <Text variant="body6">{`${
-                                  file.name
-                                } ] ${fileSizeToMB(file.size)} MB`}</Text>
-                                {/* ) : data[file.name] &&
-                                  data[file.name].data === "Error" ? (
+                                )}
+                                {errorData &&
+                                errorData.hasOwnProperty(file.name) &&
+                                errorData[file.name] === null ? (
+                                  <Text variant="body6">{`${
+                                    file.name
+                                  } ] ${fileSizeToMB(file.size)} MB`}</Text>
+                                ) : errorData &&
+                                  errorData[file.name] &&
+                                  errorData[file.name] === "error" ? (
                                   <Text variant="body6" color="primary.main">
-                                    {`${file.name} has errors`}
+                                    {`${file.name} file failed in scanning`}
                                   </Text>
                                 ) : (
                                   <Text variant="body6">
@@ -662,71 +687,87 @@ const BTITool = () => {
                                       file.size
                                     )} MB`}
                                   </Text>
-                                )} */}
+                                )}
                               </Flex>
                               <Flex gap={6}>
-                                {/* {data.hasOwnProperty(file.name) &&
-                                data[file.name] === null ? (
-                                  <Text>Scanning...</Text>
-                                ) : ( */}
-                                <>
-                                  {/* {!s3FileList.includes(file.name) && ( */}
-                                  <Flex
-                                    cursor="pointer"
-                                    gap={2}
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                    onClick={() => {
-                                      setSaved(false);
-                                      removeFile(i);
-                                    }}
-                                  >
-                                    <DeleteOutlineRoundedIcon
-                                      style={{
-                                        color: "#455468",
-                                        fontSize: "20px",
-                                      }}
-                                    />
-                                    <Text variant="subtitle1">Remove</Text>
+                                {loadingSave ? (
+                                  <Flex>
+                                    <Text>Scanning...</Text>
                                   </Flex>
-                                  {/* )} */}
-                                  <Flex
-                                    onClick={() =>
-                                      setViewFileDialog({
-                                        open: true,
-                                        data: null,
-                                      })
-                                    }
-                                    cursor={
-                                      s3FileList.includes(file.name)
-                                        ? "pointer"
-                                        : "no-drop"
-                                    }
-                                    gap={2}
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                  >
-                                    <VisibilityOutlinedIcon
-                                      style={{
-                                        color: s3FileList.includes(file.name)
-                                          ? "#BF0026"
-                                          : "gray",
-                                        fontSize: "20px",
-                                      }}
-                                    />
-                                    <Text
-                                      variant="subtitle1"
-                                      color={
-                                        s3FileList.includes(file.name)
-                                          ? "primary.main"
-                                          : "gray"
-                                      }
-                                    >
-                                      View
+                                ) : !errorData && scanFailed ? (
+                                  <Flex>
+                                    <Text>
+                                      Scanning failed retry, save request
                                     </Text>
                                   </Flex>
-                                </>
-                                {/* )} */}
+                                ) : (
+                                  <>
+                                    <Flex
+                                      cursor="pointer"
+                                      gap={2}
+                                      justifyContent="space-between"
+                                      alignItems="center"
+                                      onClick={() => {
+                                        setSaved(false);
+                                        removeFile(i);
+                                      }}
+                                    >
+                                      <DeleteOutlineRoundedIcon
+                                        style={{
+                                          color: "#455468",
+                                          fontSize: "20px",
+                                        }}
+                                      />
+                                      <Text variant="subtitle1">Remove</Text>
+                                    </Flex>
+                                    <Flex
+                                      onClick={() =>
+                                        s3FileList.includes(file.name) &&
+                                        errorData &&
+                                        errorData[file.name] !== "error"
+                                          ? setViewFileDialog({
+                                              open: true,
+                                              data: file,
+                                            })
+                                          : ""
+                                      }
+                                      cursor={
+                                        s3FileList.includes(file.name) &&
+                                        errorData &&
+                                        errorData[file.name] !== "error"
+                                          ? "pointer"
+                                          : "no-drop"
+                                      }
+                                      gap={2}
+                                      justifyContent="space-between"
+                                      alignItems="center"
+                                    >
+                                      <VisibilityOutlinedIcon
+                                        style={{
+                                          color:
+                                            s3FileList.includes(file.name) &&
+                                            errorData &&
+                                            errorData[file.name] !== "error"
+                                              ? "#BF0026"
+                                              : "gray",
+                                          fontSize: "20px",
+                                        }}
+                                      />
+                                      <Text
+                                        variant="subtitle1"
+                                        color={
+                                          s3FileList.includes(file.name) &&
+                                          errorData &&
+                                          errorData[file.name] !== "error"
+                                            ? "primary.main"
+                                            : "gray"
+                                        }
+                                      >
+                                        View
+                                      </Text>
+                                    </Flex>
+                                  </>
+                                )}
                               </Flex>
                             </Flex>
                           );
@@ -744,7 +785,7 @@ const BTITool = () => {
             <Button
               mr={4}
               w="25%"
-              cursor={loadingSave ? "no-drop" : "pointer"}
+              cursor={!loadingSave && saved ? "no-drop" : "pointer"}
               onClick={() => {
                 if (!loadingSave && !saved) saveRequest();
               }}
@@ -761,10 +802,17 @@ const BTITool = () => {
               Save Request
             </Button>
             <Button
-              cursor={saved ? "pointer" : "no-drop"}
+              cursor={
+                saved &&
+                errorData &&
+                !Object.values(errorData).includes("error")
+                  ? "pointer"
+                  : "no-drop"
+              }
               w="25%"
               onClick={() => {
-                if (saved) handleProcessRequest();
+                if (saved && !Object.values(errorData).includes("error"))
+                  handleProcessRequest();
               }}
             >
               Process Request
