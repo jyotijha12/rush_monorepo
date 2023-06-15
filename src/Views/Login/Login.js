@@ -16,9 +16,8 @@ const Login = () => {
   const [show, setShow] = useState(false);
 
   const login = () => {
-    window.location.replace(
-      `${process.env.REACT_APP_WSO2_URI}?response_type=code&client_id=${process.env.REACT_APP_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=openid`
-    );
+    const url = `${process.env.REACT_APP_WSO2_URI}?response_type=code&client_id=${process.env.REACT_APP_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=openid`;
+    window.location.replace(url);
   };
 
   return (
@@ -42,11 +41,11 @@ const Login = () => {
           justifyContent="center"
           alignItems="center"
         >
-          <Flex w="60%" alignItems="end" gap={2}>
+          <Flex w="60%" alignItems="center" gap={2}>
             <Text>Organization</Text>
             {":"}
             <Select
-              ml={8}
+              ml={4}
               w="100%"
               variant="flushed"
               boxShadow="none"

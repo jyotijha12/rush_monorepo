@@ -76,11 +76,8 @@ const Tableau = () => {
             return (
               <Tab
                 isDisabled={
-                  tab !== "Errors & Warnings" && location.state
-                    ? location.state.rowData.errors.length > 0 ||
-                      location.state.rowData.warnings.length > 0
-                      ? true
-                      : false
+                  tab !== "Errors & Warnings" && errors.length > 0
+                    ? true
                     : false
                 }
                 fontSize="14px"

@@ -53,15 +53,15 @@ const ErrorWarningTable = (props) => {
                     <Td>
                       <Text textAlign="center">
                         {props.tableName === "Errors"
-                          ? item.external_error
-                          : item.external_warning}
+                          ? item.error_title
+                          : item.warning_title}
                       </Text>
                     </Td>
                     <Td>
                       <Text textAlign="center">
                         {props.tableName === "Errors"
-                          ? item.error_title
-                          : item.warning_title}
+                          ? item.external_error
+                          : item.external_warning}
                       </Text>
                     </Td>
                     <Td>
