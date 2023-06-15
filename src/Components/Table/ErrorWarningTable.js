@@ -53,15 +53,22 @@ const ErrorWarningTable = (props) => {
                     <Td>
                       <Text textAlign="center">
                         {props.tableName === "Errors"
-                          ? item.error_code
-                          : item.warning_code}
+                          ? item.external_error
+                          : item.external_warning}
                       </Text>
                     </Td>
                     <Td>
                       <Text textAlign="center">
                         {props.tableName === "Errors"
-                          ? item.error_message
-                          : item.warning_message}
+                          ? item.error_title
+                          : item.warning_title}
+                      </Text>
+                    </Td>
+                    <Td>
+                      <Text textAlign="center">
+                        {props.tableName === "Errors"
+                          ? item.error_description
+                          : item.warning_description}
                       </Text>
                     </Td>
                   </Tr>
@@ -71,7 +78,7 @@ const ErrorWarningTable = (props) => {
           ) : (
             <TableCaption h="35vh">
               <Flex h="100%" justifyContent="center" alignItems="center">
-                <Text>No data exist!!</Text>
+                <Text>{`No ${props.tableName.toLowerCase()} exist!!`}</Text>
               </Flex>
             </TableCaption>
           )}
