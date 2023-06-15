@@ -5,6 +5,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Select,
   Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
@@ -15,16 +16,15 @@ const Login = () => {
   const [show, setShow] = useState(false);
 
   const login = () => {
-    window.location.replace(
-      `${process.env.REACT_APP_WSO2_URI}?response_type=code&client_id=${process.env.REACT_APP_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=openid`
-    );
+    const url = `${process.env.REACT_APP_WSO2_URI}?response_type=code&client_id=${process.env.REACT_APP_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=openid`;
+    window.location.replace(url);
   };
 
   return (
     <Flex justifyContent="center" alignItems="center" h="600px">
       <Flex
         w="70%"
-        h="500px"
+        h="510px"
         border="4px solid"
         borderColor="primary.main"
         borderRadius="40px"
@@ -41,6 +41,28 @@ const Login = () => {
           justifyContent="center"
           alignItems="center"
         >
+          <Flex w="60%" alignItems="center" gap={2}>
+            <Text>Organization</Text>
+            {":"}
+            <Select
+              ml={4}
+              w="100%"
+              variant="flushed"
+              boxShadow="none"
+              borderColor="custom.main"
+              _focusVisible={{
+                borderColor: "custom.main",
+                boxShadow: "none",
+              }}
+              _hover={{
+                borderColor: "custom.main",
+                boxShadow: "none",
+              }}
+            >
+              <option>ABSA</option>
+              <option>EXL</option>
+            </Select>
+          </Flex>
           <Input placeholder="Username" variant="flushed" w="60%" isDisabled />
           <InputGroup w="60%">
             <Input
@@ -80,12 +102,6 @@ const Login = () => {
               Login
             </Button>
           </Box>
-          <Flex mt={4} gap={1} justifyItems="center" alignItems="center">
-            <Text variant="body5">Not a member?</Text>
-            <Text variant="body5" color="primary.main" cursor="pointer">
-              Signup
-            </Text>
-          </Flex>
         </Flex>
       </Flex>
     </Flex>

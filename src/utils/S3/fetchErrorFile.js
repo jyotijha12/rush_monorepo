@@ -7,11 +7,10 @@ AWS.config.update({
 
 export const fetchErrorFile = async (path) => {
   const s3 = new AWS.S3();
-  const filePath = `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${path}/error.json`;
+  const filePath = `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${path}/status.json`;
 
-  let pollingInterval;
-  const maxPollingTime = 15000;
-  const pollingDelay = 1000;
+  const pollingInterval = 3000;
+  const maxPollingTime = 60000;
   let elapsedTime = 0;
 
   const pollForErrorFile = async () => {
@@ -24,20 +23,33 @@ export const fetchErrorFile = async (path) => {
         .promise();
 
       const fileData = response.Body.toString("utf-8");
-      clearInterval(pollingInterval);
-      return fileData();
-    } catch (error) {}
+      return JSON.parse(fileData);
+    } catch (error) {
+      return null;
+    }
   };
 
-  pollingInterval = setInterval(() => {
-    elapsedTime += pollingDelay;
-    if (elapsedTime >= maxPollingTime) {
-      clearInterval(pollingInterval);
-      return;
-    }
+  return new Promise((resolve) => {
+    const pollingTimeout = setTimeout(() => {
+      clearInterval(pollingIntervalId);
+      resolve(null);
+    }, maxPollingTime);
 
-    pollForErrorFile();
-  }, pollingDelay);
+    const pollingIntervalId = setInterval(async () => {
+      elapsedTime += pollingInterval;
 
-  pollForErrorFile();
+      const fileData = await pollForErrorFile();
+
+      if (fileData !== null) {
+        clearInterval(pollingIntervalId);
+        clearTimeout(pollingTimeout);
+        resolve(fileData);
+      }
+
+      if (elapsedTime >= maxPollingTime) {
+        clearInterval(pollingIntervalId);
+        resolve(null);
+      }
+    }, pollingInterval);
+  });
 };

@@ -41,6 +41,18 @@ const RecentApplications = () => {
 
   useEffect(() => {
     fetchData();
+
+    const intervalId = setInterval(() => {
+      if (window.location.pathname === "/absa/recent-applications") {
+        search === "" && fetchData();
+      }
+    }, 5000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import {
+  Button,
   CircularProgress,
   Flex,
   Modal,
@@ -7,8 +8,12 @@ import {
   ModalOverlay,
   Text,
 } from "@chakra-ui/react";
+import { Home } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const GenerationInsightsDialog = (props) => {
+  const navigate = useNavigate();
+
   return (
     <Modal
       size="4xl"
@@ -20,7 +25,14 @@ const GenerationInsightsDialog = (props) => {
       <ModalOverlay />
       <ModalContent>
         <ModalBody mt={10}>
-          <Flex w="100%" alignItems="center" justifyContent="center" h="500px">
+          <Flex
+            w="100%"
+            alignItems="center"
+            justifyContent="center"
+            h="500px"
+            flexDir="column"
+            gap={8}
+          >
             <Flex
               gap={6}
               flexDir="column"
@@ -37,6 +49,12 @@ const GenerationInsightsDialog = (props) => {
                 Generating Insights
               </Text>
             </Flex>
+            <Button
+              leftIcon={<Home />}
+              onClick={() => navigate("/recent-applications")}
+            >
+              Redirect to Home Page
+            </Button>
           </Flex>
         </ModalBody>
       </ModalContent>

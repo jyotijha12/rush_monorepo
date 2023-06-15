@@ -50,7 +50,7 @@ const Tableau = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 
     if (!location.state) {
-      // navigate("/recent-applications");
+      navigate("/recent-applications");
     } else {
       setErrors(location.state.rowData.errors);
       setWarnings(location.state.rowData.warnings);
@@ -75,6 +75,11 @@ const Tableau = () => {
           {Object.keys(tabList).map((tab, i) => {
             return (
               <Tab
+                isDisabled={
+                  tab !== "Errors & Warnings" && errors.length > 0
+                    ? true
+                    : false
+                }
                 fontSize="14px"
                 key={i}
                 color="primary.main"
@@ -113,26 +118,49 @@ const Tableau = () => {
                         Errors & Warnings
                       </Text>
 
-                      <ErrorWarningTable
-                        tableName="Errors"
-                        data={errors}
-                        heading={["Error Code", "Error Description"]}
-                      />
+                      {errors.length === 0 && warnings.length === 0 ? (
+                        <Flex w="100%" justifyContent="center" mt={10}>
+                          <Text textAlign="center">
+                            No errors and warnings!!
+                          </Text>
+                        </Flex>
+                      ) : (
+                        <>
+                          <Box>
+                            {errors.length > 0 && (
+                              <ErrorWarningTable
+                                tableName="Errors"
+                                data={errors}
+                                heading={[
+                                  "Error Title",
+                                  "Error Code",
+                                  "Error Description",
+                                ]}
+                              />
+                            )}
 
-                      <ErrorWarningTable
-                        tableName="Warnings"
-                        data={warnings}
-                        heading={["Warning Code", "Warning Description"]}
-                      />
-
-                      <Flex justifyContent="flex-end">
-                        <Button
-                          w="20%"
-                          onClick={() => navigate("/recent-applications")}
-                        >
-                          Done
-                        </Button>
-                      </Flex>
+                            {warnings.length > 0 && (
+                              <ErrorWarningTable
+                                tableName="Warnings"
+                                data={warnings}
+                                heading={[
+                                  "Warning Title",
+                                  "Warning Code",
+                                  "Warning Description",
+                                ]}
+                              />
+                            )}
+                          </Box>
+                          <Flex justifyContent="flex-end">
+                            <Button
+                              w="20%"
+                              onClick={() => navigate("/recent-applications")}
+                            >
+                              Done
+                            </Button>
+                          </Flex>
+                        </>
+                      )}
                     </Flex>
                   )}
                 </Flex>

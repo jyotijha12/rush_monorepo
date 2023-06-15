@@ -52,7 +52,7 @@ const ApplicationExistDialog = (props) => {
                 <Button
                   variant="secondary"
                   onClick={async () => {
-                    await props.getUniqueInstanceId(false);
+                    await props.getUniqueInstanceId(false, "Add");
                     props.onClose();
                   }}
                 >
