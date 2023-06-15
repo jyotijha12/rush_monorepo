@@ -1,10 +1,9 @@
 import { Box } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import file from "../../Resources/READ-ME.pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const PDFViewer = () => {
+const PDFViewer = (props) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [numPages, setNumPages] = useState(null);
 
@@ -29,7 +28,7 @@ const PDFViewer = () => {
         flexDirection="column"
         alignItems="center"
       >
-        <Document file={file} onLoadSuccess={handleDocumentLoadSuccess}>
+        <Document file={props.data} onLoadSuccess={handleDocumentLoadSuccess}>
           <Page pageNumber={currentPage} />
         </Document>
         <div>
