@@ -15,13 +15,14 @@ const ViewFileDialog = (props) => {
       isOpen={props.open}
       onClose={props.onClose}
       scrollBehavior="outside"
+      closeOnOverlayClick={false}
     >
       <ModalOverlay />
       <ModalContent>
         <ModalCloseButton />
         <ModalBody mt={10}>
           <Flex w="100%" alignItems="center" justifyContent="center">
-            <PDFViewer />
+            <PDFViewer data={props.data} />
           </Flex>
         </ModalBody>
       </ModalContent>

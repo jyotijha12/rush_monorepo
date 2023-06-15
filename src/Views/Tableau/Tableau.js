@@ -10,9 +10,10 @@ import {
   Tabs,
   Text,
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@emotion/react";
 import ErrorWarningTable from "../../Components/Table/ErrorWarningTable";
+import { useEffect, useState } from "react";
 
 const options = {
   height: window.screen.height < 768 ? 300 : window.screen.height - 300,
@@ -22,8 +23,12 @@ const options = {
 };
 
 const Tableau = () => {
+  const [errors, setErrors] = useState([]);
+  const [warnings, setWarnings] = useState([]);
+
   const navigate = useNavigate();
   const theme = useTheme();
+  const location = useLocation();
 
   const tabList = {
     "Digitized Bank Statement Data":
@@ -41,26 +46,40 @@ const Tableau = () => {
     "Errors & Warnings": "",
   };
 
-  const data = {
-    errors: [
-      { id: 1, error_code: "E01", error_message: "Poor quality documents" },
-    ],
-    warnings: [
-      {
-        id: 1,
-        warning_code: "W01",
-        warning_message: "Documents uploaded are duplicate",
-      },
-    ],
-  };
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+
+    if (!location.state) {
+      navigate("/recent-applications");
+    } else {
+      setErrors(location.state.rowData.errors);
+      setWarnings(location.state.rowData.warnings);
+    }
+
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <Box w="100%">
-      <Tabs>
+      <Tabs
+        defaultIndex={
+          location.state
+            ? location.state.rowData.errors.length > 0 ||
+              location.state.rowData.warnings.length > 0
+              ? Object.keys(tabList).length - 1
+              : 0
+            : 0
+        }
+      >
         <TabList>
           {Object.keys(tabList).map((tab, i) => {
             return (
               <Tab
+                isDisabled={
+                  tab !== "Errors & Warnings" && errors.length > 0
+                    ? true
+                    : false
+                }
                 fontSize="14px"
                 key={i}
                 color="primary.main"
@@ -99,26 +118,49 @@ const Tableau = () => {
                         Errors & Warnings
                       </Text>
 
-                      <ErrorWarningTable
-                        tableName="Errors"
-                        data={data["errors"]}
-                        heading={["Error Code", "Error Description"]}
-                      />
+                      {errors.length === 0 && warnings.length === 0 ? (
+                        <Flex w="100%" justifyContent="center" mt={10}>
+                          <Text textAlign="center">
+                            No errors and warnings!!
+                          </Text>
+                        </Flex>
+                      ) : (
+                        <>
+                          <Box>
+                            {errors.length > 0 && (
+                              <ErrorWarningTable
+                                tableName="Errors"
+                                data={errors}
+                                heading={[
+                                  "Error Title",
+                                  "Error Code",
+                                  "Error Description",
+                                ]}
+                              />
+                            )}
 
-                      <ErrorWarningTable
-                        tableName="Warnings"
-                        data={data["warnings"]}
-                        heading={["Warning Code", "Warning Description"]}
-                      />
-
-                      <Flex justifyContent="flex-end">
-                        <Button
-                          w="20%"
-                          onClick={() => navigate("/recent-applications")}
-                        >
-                          Done
-                        </Button>
-                      </Flex>
+                            {warnings.length > 0 && (
+                              <ErrorWarningTable
+                                tableName="Warnings"
+                                data={warnings}
+                                heading={[
+                                  "Warning Title",
+                                  "Warning Code",
+                                  "Warning Description",
+                                ]}
+                              />
+                            )}
+                          </Box>
+                          <Flex justifyContent="flex-end">
+                            <Button
+                              w="20%"
+                              onClick={() => navigate("/recent-applications")}
+                            >
+                              Done
+                            </Button>
+                          </Flex>
+                        </>
+                      )}
                     </Flex>
                   )}
                 </Flex>

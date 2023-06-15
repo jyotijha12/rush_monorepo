@@ -14,7 +14,12 @@ import FileUploader from "../FileUploader/FileUploader";
 
 const UploaderDialog = (props) => {
   return (
-    <Modal size="4xl" isOpen={props.open} onClose={props.onClose}>
+    <Modal
+      size="4xl"
+      isOpen={props.open}
+      onClose={props.onClose}
+      closeOnOverlayClick={false}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalCloseButton />
@@ -32,7 +37,7 @@ const UploaderDialog = (props) => {
             >
               <Flex bg="primary.main" p={1} borderRadius="6px" w="60%">
                 <Text textAlign="center" variant="body5" color="white" w="100%">
-                  Drag & drop files for procecessing
+                  Drag & drop files for processing
                 </Text>
               </Flex>
               <Flex justifyContent="center" alignItems="center">

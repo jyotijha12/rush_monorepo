@@ -2,6 +2,7 @@ import { Box } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import AppBar from "./Containers/AppBar/AppBar";
+import { setAuthorizationToken } from "./utils/Axios/axiosInstance";
 import BTITool from "./Views/BTI/BTITool";
 import ChangePassword from "./Views/ChangePassword/ChangePassword";
 import Login from "./Views/Login/Login";
@@ -13,9 +14,12 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const token = JSON.parse(sessionStorage.getItem("token"));
+    token && setAuthorizationToken(token.access_token);
+
+    localStorage.setItem("chakra-ui-color-mode", "light");
+    const isLoggedIn = sessionStorage.getItem("isLoggedIn");
     const pathname = window.location.pathname;
-    const token = localStorage.getItem("token");
 
     if (
       (isLoggedIn === "true" && pathname === `/absa`) ||

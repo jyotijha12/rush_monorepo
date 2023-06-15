@@ -8,202 +8,10 @@ import {
   Text,
 } from "@chakra-ui/react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApplicationTable from "../../Components/Table/ApplicationTable";
-
-const data = [
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A012",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A013",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A014",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A014",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01444",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01444",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Saved",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-  {
-    id: 1,
-    application_number: "A01",
-    instance_number: 1,
-    user: "User1",
-    status: "Complete",
-    error_warning: "No",
-    last_updated: "24th March 2023",
-  },
-];
+import { axiosInstance } from "../../utils/Axios/axiosInstance";
 
 const RecentApplications = () => {
   const [search, setSearch] = useState("");
@@ -211,22 +19,19 @@ const RecentApplications = () => {
 
   const navigate = useNavigate();
 
-  const fetchData = () => {
-    const token = JSON.parse(localStorage.getItem("token"))["data"];
+  const fetchData = (application_id) => {
     let data = new FormData();
+    application_id && data.append("application_id", application_id);
     data.append("page_number", "1");
-    data.append("page_size", "150");
+    data.append("page_size", "100");
     data.append("file_details", "1");
 
     let config = {
       method: "post",
-      url: `${process.env.REACT_APP_BASE_API_URL}/api/get_data/`,
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-      },
+      url: `/api/get_data/`,
       data: data,
     };
-    axios
+    axiosInstance
       .request(config)
       .then((response) => {
         setFilteredData(response.data.data);
@@ -236,16 +41,29 @@ const RecentApplications = () => {
 
   useEffect(() => {
     fetchData();
+
+    const intervalId = setInterval(() => {
+      if (window.location.pathname === "/absa/recent-applications") {
+        search === "" && fetchData();
+      }
+    }, 5000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+
+    // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    if (search === "") fetchData();
+  }, [search]);
 
   const handleSearch = () => {
     if (search === "") {
-      setFilteredData(data);
+      setFilteredData(filteredData);
     } else {
-      const filtered = data.filter(
-        (item) => item.application_id.toLowerCase() === search.toLowerCase()
-      );
-      setFilteredData(filtered);
+      fetchData(search);
     }
   };
 
@@ -263,7 +81,7 @@ const RecentApplications = () => {
     <Box mb={4}>
       <Flex justifyContent="center" alignItems="center" h="100%" pt={8} pb={6}>
         <Flex
-          w="80%"
+          w="85%"
           h="100%"
           border="4px solid"
           borderColor="primary.main"
@@ -279,7 +97,7 @@ const RecentApplications = () => {
         </Flex>
       </Flex>
       <Flex justifyContent="center">
-        <Flex w="70%" flexDir="column" gap={4}>
+        <Flex w="75%" flexDir="column" gap={4}>
           <Text variant="body2">Recent Applications</Text>
           <Flex gap={4}>
             <Flex flexDir="column" gap={1} w="55%">

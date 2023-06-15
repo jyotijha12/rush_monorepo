@@ -3,10 +3,9 @@ import axios from "axios";
 import { useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
-const WSO2 = () => {
+const WSO2 = (props) => {
   const query = useQuery();
   const toast = useToast();
-
   function useQuery() {
     const { search } = useLocation();
     return useMemo(() => new URLSearchParams(search), [search]);
@@ -22,20 +21,15 @@ const WSO2 = () => {
     let config = {
       method: "post",
       url: `${process.env.REACT_APP_BASE_AUTHENTICATION_URL}/auth/user_login/`,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
       data: formData,
     };
 
     axios
       .request(config)
       .then((response) => {
-        localStorage.setItem("token", JSON.stringify(response.data));
-        localStorage.setItem("isLoggedIn", "true");
-        window.location.assign(
-          `${process.env.REACT_APP_BASE_URL}/recent-applications`
-        );
+        sessionStorage.setItem("token", JSON.stringify(response.data.data));
+        sessionStorage.setItem("isLoggedIn", "true");
+        window.location.assign(`/absa/recent-applications`);
       })
       .catch(() => {
         toast({
@@ -45,7 +39,7 @@ const WSO2 = () => {
           duration: 5000,
           isClosable: false,
         });
-        window.location.pathname(`${process.env.REACT_APP_BASE_URL}`);
+        window.location.pathname = "/absa";
       });
 
     // eslint-disable-next-line

@@ -6,9 +6,9 @@ AWS.config.update({
   secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
 });
 
-export const uploadFile = async (applicationId, instanceId, file) => {
+export const uploadFile = async (applicationId, instanceId, files) => {
   const bucketName = process.env.REACT_APP_AWS_S3_BUCKET;
-  const folderName = process.env.REACT_APP_AWS_S3_FOLDER;
+  const folderName = process.env.REACT_APP_AWS_S3_STAGING_PATH;
 
   await createFolder(bucketName, folderName);
   await createFolder(bucketName, `${folderName}/${applicationId}`);
@@ -17,21 +17,22 @@ export const uploadFile = async (applicationId, instanceId, file) => {
     `${folderName}/${applicationId}/${instanceId}`
   );
 
-  const key = `${folderName}/${applicationId}/${instanceId}/${file.name}`;
-
   const s3 = new AWS.S3();
-  const params = {
-    Bucket: bucketName,
-    Key: key,
-    Body: file,
-  };
 
   try {
-    await s3.upload(params).promise();
-    console.log("File uploaded successfully.");
+    for (const file of files) {
+      const key = `${folderName}/${applicationId}/${instanceId}/${file.name}`;
+
+      const params = {
+        Bucket: bucketName,
+        Key: key,
+        Body: file,
+      };
+
+      await s3.upload(params).promise();
+    }
     return true;
   } catch (error) {
-    console.error("Error uploading file:", error);
     return false;
   }
 };
