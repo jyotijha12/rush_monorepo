@@ -21,7 +21,13 @@ const ViewFileDialog = (props) => {
       <ModalContent>
         <ModalCloseButton />
         <ModalBody mt={10}>
-          <Flex w="100%" alignItems="center" justifyContent="center">
+          <Flex
+            w="100%"
+            alignItems="center"
+            justifyContent="center"
+            h="100vh"
+            overflowY="auto"
+          >
             <PDFViewer data={props.data} />
           </Flex>
         </ModalBody>
