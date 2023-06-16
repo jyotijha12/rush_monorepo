@@ -104,6 +104,7 @@ const AppBar = () => {
                   alignItems="center"
                   onClick={logoutUser}
                   cursor="pointer"
+                  mr={2}
                 >
                   <Text variant="body6" color="custom.main">
                     Logout
