@@ -5,6 +5,8 @@ import {
   CircularProgress,
   Flex,
   Input,
+  InputGroup,
+  InputRightElement,
   Text,
   useToast,
 } from "@chakra-ui/react";
@@ -57,6 +59,7 @@ const BTITool = () => {
   const [errorData, setErrorData] = useState(null);
   const [fileLoading, setFileLoading] = useState(false);
   const [scanFailed, setScanFailed] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -261,6 +264,7 @@ const BTITool = () => {
         if (params) {
           return response.data.data;
         } else {
+          setSearchLoading(false);
           if (
             response.data.data.length > 0 &&
             response.data.data[0].application_id === formData.applicationId
@@ -345,6 +349,7 @@ const BTITool = () => {
         formData.applicationId.length === 10 ||
         formData.applicationId.length === 16
       ) {
+        setSearchLoading(true);
         fetchData();
       }
     // eslint-disable-next-line
@@ -464,7 +469,14 @@ const BTITool = () => {
           elapsedTime += intervalTime;
           if (elapsedTime >= totalTime) {
             clearInterval(pollingInterval);
-            navigate("/recent-applications");
+            toast({
+              title: "Redirecting",
+              description: "Redirecting to Home Screen in 5 seconds",
+              status: "success",
+              duration: 5000,
+              isClosable: true,
+            });
+            setTimeout(() => navigate("/recent-applications"), 5000);
           }
         }
       });
@@ -527,14 +539,31 @@ const BTITool = () => {
                     *
                   </Text>
                 </Flex>
-                <Input
-                  isDisabled={location.state && location.state.rowData}
-                  maxLength={16}
-                  value={formData.applicationId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, applicationId: e.target.value })
-                  }
-                />
+                <InputGroup>
+                  <Input
+                    isDisabled={
+                      (location.state && location.state.rowData) ||
+                      searchLoading
+                    }
+                    maxLength={16}
+                    value={formData.applicationId}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        applicationId: e.target.value,
+                      })
+                    }
+                  />
+                  <InputRightElement>
+                    {searchLoading && (
+                      <CircularProgress
+                        isIndeterminate
+                        color="custom.main"
+                        size="20px"
+                      />
+                    )}
+                  </InputRightElement>
+                </InputGroup>
               </Flex>
               <Flex flexDir="column" gap={1} w="40%">
                 <Text variant="body1semiBold">Instance</Text>
@@ -722,15 +751,21 @@ const BTITool = () => {
                                     </Flex>
                                     <Flex
                                       onClick={() =>
-                                        s3FileList.includes(file.name) &&
-                                        errorData &&
-                                        errorData[file.name] !== "error"
-                                          ? setViewFileDialog({
-                                              open: true,
-                                              data: file,
-                                            })
-                                          : ""
+                                        setViewFileDialog({
+                                          open: true,
+                                          data: file,
+                                        })
                                       }
+                                      // onClick={() =>
+                                      //   s3FileList.includes(file.name) &&
+                                      //   errorData &&
+                                      //   errorData[file.name] !== "error"
+                                      //     ? setViewFileDialog({
+                                      //         open: true,
+                                      //         data: file,
+                                      //       })
+                                      //     : ""
+                                      // }
                                       cursor={
                                         s3FileList.includes(file.name) &&
                                         errorData &&
