@@ -144,14 +144,17 @@ const ApplicationTable = (props) => {
                       )}
                     </Td>
                     <Td fontSize="13.5px">
-                      {moment(item.modified_at).format("YYYY-MM-DD HH:mm:ss")}
+                      {moment
+                        .utc(item.modified_at)
+                        .add(5, "hours")
+                        .format("YYYY-MM-DD HH:mm:ss")}
                     </Td>
                   </Tr>
                 );
               })}
             </Tbody>
           ) : (
-            <TableCaption h="65vh">
+            <TableCaption h="60vh">
               <Flex h="100%" justifyContent="center" alignItems="center">
                 <Text>No data exist!!</Text>
               </Flex>
