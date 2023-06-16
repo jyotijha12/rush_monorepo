@@ -74,7 +74,7 @@ const RecentApplications = () => {
     "Status",
     "Error/Warning",
     "Action",
-    "Last Updated",
+    "Last Updated (SAST)",
   ];
 
   return (

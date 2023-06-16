@@ -10,7 +10,7 @@ export const fetchErrorFile = async (path) => {
   const filePath = `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${path}/status.json`;
 
   const pollingInterval = 3000;
-  const maxPollingTime = 60000;
+  const maxPollingTime = 15000;
   let elapsedTime = 0;
 
   const pollForErrorFile = async () => {
