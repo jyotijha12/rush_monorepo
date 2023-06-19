@@ -1,14 +1,15 @@
 import AWS from "aws-sdk";
+import { getENV } from "../Encryption/getENV";
 import { createFolder } from "./createFolder";
 
 AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
+  accessKeyId: getENV("REACT_APP_AWS_ACCESS_KEY_ID"),
+  secretAccessKey: getENV("REACT_APP_AWS_SECRET_ACCESS_KEY"),
 });
 
 export const uploadFile = async (applicationId, instanceId, files) => {
-  const bucketName = process.env.REACT_APP_AWS_S3_BUCKET;
-  const folderName = process.env.REACT_APP_AWS_S3_STAGING_PATH;
+  const bucketName = getENV("REACT_APP_AWS_S3_BUCKET");
+  const folderName = getENV("REACT_APP_AWS_S3_STAGING_PATH");
 
   await createFolder(bucketName, folderName);
   await createFolder(bucketName, `${folderName}/${applicationId}`);

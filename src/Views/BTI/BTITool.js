@@ -20,13 +20,14 @@ import ViewFileDialog from "../../Components/Dialog/ViewFileDialog";
 import GenerationInsightsDialog from "../../Components/Dialog/GenerationInsightsDialog";
 import { useLocation, useNavigate } from "react-router-dom";
 import ApplicationExistDialog from "../../Components/Dialog/ApplicationExistDialog";
-import Select from "react-select";
 import { uploadFile } from "../../utils/S3/uploadFile";
 import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
 import { listFilesObject } from "../../utils/S3/listFilesObject";
 import { listFiles } from "../../utils/S3/listFiles";
 import { fetchErrorFile } from "../../utils/S3/fetchErrorFile";
 import { axiosInstance } from "../../utils/Axios/axiosInstance";
+import { getENV } from "../../utils/Encryption/getENV";
+import CustomSelect from "../../Components/CustomSelect/CustomSelect";
 
 const BTITool = () => {
   const [uploaderDialog, setUploaderDialog] = useState({
@@ -67,26 +68,17 @@ const BTITool = () => {
 
   const location = useLocation();
 
-  const types = [
-    { label: "Consumer (Salaried-Full Time Employed)", value: "P00ABgA04" },
-    { label: "Pensioner", value: "S00ABgA04" },
-    { label: "Temporary Employed", value: "Q00ABgA04" },
-    { label: "Student", value: "R00ABgA04" },
-    { label: "Self Employed Professional", value: "M00ABgA04" },
-    { label: "Self Employed Non-Professional", value: "N00ABgA04" },
-    { label: "Solo Proprietors", value: "T00ABgA04" },
-  ];
+  const tempTypetypes = getENV("types");
+  const types = JSON.parse(tempTypetypes);
 
   const saveFiles = async (id) => {
     if (id) {
       await uploadFile(formData.applicationId, id, files);
-      const fileList = await listFiles(
-        `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
-      );
+      const fileList = await listFiles(`${formData.applicationId}/${id}`);
       setS3FileList(fileList);
 
       const filesObject = await listFilesObject(
-        `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
+        `${formData.applicationId}/${id}`
       );
       setFiles(filesObject);
 
@@ -108,7 +100,7 @@ const BTITool = () => {
         .request(config)
         .then(async () => {
           const filesObject = await listFilesObject(
-            `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
+            `${formData.applicationId}/${id}`
           );
           setFiles(filesObject);
 
@@ -223,12 +215,12 @@ const BTITool = () => {
 
             const data = response.data.data[0];
             const filesObject = await listFilesObject(
-              `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
+              `${location.state.rowData.application_id}/${data.instance_unique_id}`
             );
             setFiles(filesObject);
 
             const fileList = await listFiles(
-              `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
+              `${location.state.rowData.application_id}/${data.instance_unique_id}`
             );
             setS3FileList(fileList);
 
@@ -363,7 +355,7 @@ const BTITool = () => {
       ) {
         !location.state && getUniqueInstanceId(false);
         const fileList = await listFiles(
-          `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${uniqueInstanceId}`
+          `${formData.applicationId}/${uniqueInstanceId}`
         );
         setS3FileList(fileList);
       }
@@ -371,36 +363,6 @@ const BTITool = () => {
     getList();
     // eslint-disable-next-line
   }, [formData.applicationId]);
-
-  const customStyles = {
-    control: (provided, state) => ({
-      ...provided,
-      border: state.isFocused
-        ? "1px solid #455468"
-        : state.isDisabled
-        ? "1px solid rgba(69, 84, 104, 0.4)"
-        : "1px solid #455468",
-      boxShadow: state.isFocused ? null : null,
-      backgroundColor: state.isDisabled ? "white" : provided.backgroundColor,
-      "&:hover": {
-        border: state.isFocused
-          ? "1px solid #455468"
-          : state.isDisabled
-          ? "1px solid rgba(69, 84, 104, 0.4)"
-          : "1px solid #455468",
-      },
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected ? "rgba(191, 0, 38, 0.15)" : null,
-      color: "black",
-      "&:hover": {
-        backgroundColor: state.isSelected
-          ? "rgba(191, 0, 38, 0.05)"
-          : "rgba(191, 0, 38, 0.05)",
-      },
-    }),
-  };
 
   const isValid = () => {
     const newErrors = {};
@@ -469,14 +431,16 @@ const BTITool = () => {
           elapsedTime += intervalTime;
           if (elapsedTime >= totalTime) {
             clearInterval(pollingInterval);
-            toast({
-              title: "Redirecting",
-              description: "Redirecting to Home Screen in 5 seconds",
-              status: "success",
-              duration: 5000,
-              isClosable: true,
-            });
-            setTimeout(() => navigate("/recent-applications"), 5000);
+            if (window.location.pathname === "/absa/bti-tool") {
+              toast({
+                title: "Redirecting",
+                description: "Redirecting to Home Screen in 5 seconds",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+              });
+              setTimeout(() => navigate("/recent-applications"), 5000);
+            }
           }
         }
       });
@@ -530,7 +494,7 @@ const BTITool = () => {
             flexDir="column"
             p={10}
           >
-            <Text variant="body2">BTI Tool</Text>
+            <Text variant="body2">BTI Solution</Text>
             <Flex w="100%" gap={4} mt={4}>
               <Flex flexDir="column" gap={1} w="60%">
                 <Flex w="100%">
@@ -574,26 +538,11 @@ const BTITool = () => {
               <Flex w="59%" gap={4}>
                 <Flex flexDir="column" gap={1} w="100%">
                   <Text variant="body1semiBold">Type</Text>
-                  <Select
-                    value={formData.type}
-                    placeholder="Select the type of application"
-                    styles={customStyles}
-                    isClearable
-                    onChange={(e) => {
-                      setSaved(false);
-                      if (e) {
-                        setFormData({
-                          ...formData,
-                          type: e,
-                        });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          type: "",
-                        });
-                      }
-                    }}
-                    options={types}
+                  <CustomSelect
+                    types={types}
+                    formData={formData}
+                    setFormData={setFormData}
+                    setSaved={setSaved}
                   />
                 </Flex>
               </Flex>
@@ -751,21 +700,15 @@ const BTITool = () => {
                                     </Flex>
                                     <Flex
                                       onClick={() =>
-                                        setViewFileDialog({
-                                          open: true,
-                                          data: file,
-                                        })
+                                        s3FileList.includes(file.name) &&
+                                        errorData &&
+                                        errorData[file.name] !== "error"
+                                          ? setViewFileDialog({
+                                              open: true,
+                                              data: file,
+                                            })
+                                          : ""
                                       }
-                                      // onClick={() =>
-                                      //   s3FileList.includes(file.name) &&
-                                      //   errorData &&
-                                      //   errorData[file.name] !== "error"
-                                      //     ? setViewFileDialog({
-                                      //         open: true,
-                                      //         data: file,
-                                      //       })
-                                      //     : ""
-                                      // }
                                       cursor={
                                         s3FileList.includes(file.name) &&
                                         errorData &&
