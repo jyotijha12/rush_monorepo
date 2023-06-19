@@ -1,9 +1,10 @@
-import { Box } from "@chakra-ui/react";
+import { Box, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import AppBar from "./Containers/AppBar/AppBar";
 import { getVaultData } from "./utils/Api/getVaultData";
 import { setAuthorizationToken } from "./utils/Axios/axiosInstance";
+import { isTokenExpired } from "./utils/JWT/isTokenExpired";
 import BTITool from "./Views/BTI/BTITool";
 import ChangePassword from "./Views/ChangePassword/ChangePassword";
 import Login from "./Views/Login/Login";
@@ -13,6 +14,8 @@ import WSO2 from "./Views/WSO2/WSO2";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
     const token = JSON.parse(sessionStorage.getItem("token"));
@@ -40,6 +43,30 @@ const App = () => {
     }
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    const token = JSON.parse(sessionStorage.getItem("token"));
+    if (token) {
+      const interval = setInterval(() => {
+        if (isTokenExpired(token.access_token)) {
+          clearInterval(interval);
+          toast({
+            title: "Session Expired",
+            description: "Session expired redirecting to login page.",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          sessionStorage.removeItem("isLoggedIn");
+          sessionStorage.removeItem("token");
+          navigate("/absa");
+        }
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+    // eslint-disable-next-line
+  }, [navigate]);
 
   return (
     <Box>
