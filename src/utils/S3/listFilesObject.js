@@ -1,16 +1,17 @@
 import AWS from "aws-sdk";
+import { getENV } from "../Encryption/getENV";
 
 AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
+  accessKeyId: getENV("REACT_APP_AWS_ACCESS_KEY_ID"),
+  secretAccessKey: getENV("REACT_APP_AWS_SECRET_ACCESS_KEY"),
 });
 
 export const listFilesObject = async (path) => {
   const s3 = new AWS.S3();
 
   const listParams = {
-    Bucket: process.env.REACT_APP_AWS_S3_BUCKET,
-    Prefix: path,
+    Bucket: getENV("REACT_APP_AWS_S3_BUCKET"),
+    Prefix: `${getENV("REACT_APP_AWS_S3_STAGING_PATH")}/${path}`,
   };
 
   try {
@@ -21,7 +22,7 @@ export const listFilesObject = async (path) => {
     const files = await Promise.all(
       fileList.map(async (file) => {
         const fileContentParams = {
-          Bucket: process.env.REACT_APP_AWS_S3_BUCKET,
+          Bucket: getENV("REACT_APP_AWS_S3_BUCKET"),
           Key: file.Key,
         };
         const fileContentResponse = await s3

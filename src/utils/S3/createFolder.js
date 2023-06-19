@@ -1,8 +1,9 @@
 import AWS from "aws-sdk";
+import { getENV } from "../Encryption/getENV";
 
 AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
+  accessKeyId: getENV("REACT_APP_AWS_ACCESS_KEY_ID"),
+  secretAccessKey: getENV("REACT_APP_AWS_SECRET_ACCESS_KEY"),
 });
 
 export const createFolder = async (bucketName, folderName) => {

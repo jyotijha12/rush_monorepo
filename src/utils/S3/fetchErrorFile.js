@@ -1,13 +1,16 @@
 import AWS from "aws-sdk";
+import { getENV } from "../Encryption/getENV";
 
 AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
+  accessKeyId: getENV("REACT_APP_AWS_ACCESS_KEY_ID"),
+  secretAccessKey: getENV("REACT_APP_AWS_SECRET_ACCESS_KEY"),
 });
 
 export const fetchErrorFile = async (path) => {
   const s3 = new AWS.S3();
-  const filePath = `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${path}/status.json`;
+  const filePath = `${getENV(
+    "REACT_APP_AWS_S3_STAGING_PATH"
+  )}/${path}/status.json`;
 
   const pollingInterval = 3000;
   const maxPollingTime = 15000;
@@ -17,7 +20,7 @@ export const fetchErrorFile = async (path) => {
     try {
       const response = await s3
         .getObject({
-          Bucket: process.env.REACT_APP_AWS_S3_BUCKET,
+          Bucket: getENV("REACT_APP_AWS_S3_BUCKET"),
           Key: filePath,
         })
         .promise();
