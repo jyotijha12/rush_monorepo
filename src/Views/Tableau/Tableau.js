@@ -31,18 +31,12 @@ const Tableau = () => {
   const location = useLocation();
 
   const tabList = {
-    "Digitized Bank Statement Data":
-      "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/Digitizeddata?:origin=card_share_link&:embed=n",
-    "Application Overview":
-      "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/ApplicationOverview?:origin=card_share_link&:embed=n",
-    "Transaction Output":
-      "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/Transactionleveloutput?:origin=card_share_link&:embed=n",
-    "Transactions Summary":
-      "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/Summary-Transactions?:origin=card_share_link&:embed=n",
-    "Customer Insights - Income":
-      "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/IncomeOverview?:origin=card_share_link&:embed=n",
-    "Customer Insights - Expenses":
-      "https://analytics.ebrain.couture.ai/views/20220523_BTI_UI_OutputScreens_ID1/ExpenseOverview?:origin=card_share_link&:embed=n",
+    "Digitized Bank Statement Data": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/Digitizeddata?:origin=card_share_link&:embed=n`,
+    "Application Overview": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/ApplicationOverview?:origin=card_share_link&:embed=n`,
+    "Transaction Output": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/Transactionleveloutput?:origin=card_share_link&:embed=n`,
+    "Transactions Summary": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/Summary-Transactions?:origin=card_share_link&:embed=n`,
+    "Customer Insights - Income": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/IncomeOverview?:origin=card_share_link&:embed=n`,
+    "Customer Insights - Expenses": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/ExpenseOverview?:origin=card_share_link&:embed=n`,
     "Errors & Warnings": "",
   };
 
