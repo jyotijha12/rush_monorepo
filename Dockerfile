@@ -4,7 +4,8 @@ WORKDIR /app
 COPY package.json .
 RUN chown -R exl_cap_user:exl_cap_user /app
 USER exl_cap_user
-RUN npm install --legacy-peer-deps
+RUN npm install
+RUN npm install tableau-react@2.2.0 --save --legacy-peer-deps
 COPY . .
 RUN npm run build
 
