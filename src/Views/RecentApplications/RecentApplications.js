@@ -19,9 +19,10 @@ const RecentApplications = () => {
 
   const navigate = useNavigate();
 
-  const fetchData = (application_id) => {
+  const fetchData = (application_pattern) => {
     let data = new FormData();
-    application_id && data.append("application_id", application_id);
+    application_pattern &&
+      data.append("application_pattern", application_pattern);
     data.append("page_number", "1");
     data.append("page_size", "100");
     data.append("file_details", "1");
@@ -44,7 +45,7 @@ const RecentApplications = () => {
 
     const intervalId = setInterval(() => {
       if (window.location.pathname === "/absa/recent-applications") {
-        search === "" && fetchData();
+        if (search === "") fetchData();
       }
     }, 5000);
 
