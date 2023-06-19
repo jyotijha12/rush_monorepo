@@ -27,6 +27,7 @@ import { listFilesObject } from "../../utils/S3/listFilesObject";
 import { listFiles } from "../../utils/S3/listFiles";
 import { fetchErrorFile } from "../../utils/S3/fetchErrorFile";
 import { axiosInstance } from "../../utils/Axios/axiosInstance";
+import { getENV } from "../../utils/Encryption/getENV";
 
 const BTITool = () => {
   const [uploaderDialog, setUploaderDialog] = useState({
@@ -67,26 +68,17 @@ const BTITool = () => {
 
   const location = useLocation();
 
-  const types = [
-    { label: "Consumer (Salaried-Full Time Employed)", value: "P00ABgA04" },
-    { label: "Pensioner", value: "S00ABgA04" },
-    { label: "Temporary Employed", value: "Q00ABgA04" },
-    { label: "Student", value: "R00ABgA04" },
-    { label: "Self Employed Professional", value: "M00ABgA04" },
-    { label: "Self Employed Non-Professional", value: "N00ABgA04" },
-    { label: "Solo Proprietors", value: "T00ABgA04" },
-  ];
+  const tempTypetypes = getENV("types");
+  const types = JSON.parse(tempTypetypes);
 
   const saveFiles = async (id) => {
     if (id) {
       await uploadFile(formData.applicationId, id, files);
-      const fileList = await listFiles(
-        `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
-      );
+      const fileList = await listFiles(`${formData.applicationId}/${id}`);
       setS3FileList(fileList);
 
       const filesObject = await listFilesObject(
-        `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
+        `${formData.applicationId}/${id}`
       );
       setFiles(filesObject);
 
@@ -108,7 +100,7 @@ const BTITool = () => {
         .request(config)
         .then(async () => {
           const filesObject = await listFilesObject(
-            `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${id}`
+            `${formData.applicationId}/${id}`
           );
           setFiles(filesObject);
 
@@ -223,12 +215,12 @@ const BTITool = () => {
 
             const data = response.data.data[0];
             const filesObject = await listFilesObject(
-              `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
+              `${location.state.rowData.application_id}/${data.instance_unique_id}`
             );
             setFiles(filesObject);
 
             const fileList = await listFiles(
-              `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${location.state.rowData.application_id}/${data.instance_unique_id}`
+              `${location.state.rowData.application_id}/${data.instance_unique_id}`
             );
             setS3FileList(fileList);
 
@@ -363,7 +355,7 @@ const BTITool = () => {
       ) {
         !location.state && getUniqueInstanceId(false);
         const fileList = await listFiles(
-          `${process.env.REACT_APP_AWS_S3_STAGING_PATH}/${formData.applicationId}/${uniqueInstanceId}`
+          `${formData.applicationId}/${uniqueInstanceId}`
         );
         setS3FileList(fileList);
       }
