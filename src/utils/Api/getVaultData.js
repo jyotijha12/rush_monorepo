@@ -10,7 +10,10 @@ export const getVaultData = () => {
     data: data,
   };
 
-  axiosInstance.request(config).then((response) => {
-    sessionStorage.setItem("encryptedData", response.data.data);
-  });
+  axiosInstance
+    .request(config)
+    .then((response) => {
+      sessionStorage.setItem("encryptedData", response.data.data);
+    })
+    .catch(() => {});
 };
