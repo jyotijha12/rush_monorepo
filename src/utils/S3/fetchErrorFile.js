@@ -8,9 +8,9 @@ AWS.config.update({
 
 export const fetchErrorFile = async (path) => {
   const s3 = new AWS.S3();
-  const filePath = `${getENV(
-    "REACT_APP_AWS_S3_STAGING_PATH"
-  )}/${path}/status.json`;
+  const filePath = `${getENV("REACT_APP_AWS_S3_STAGING_PATH")}/${path}/${getENV(
+    "REACT_APP_SCANNED_STATUS_FILE"
+  )}`;
 
   const pollingInterval = 3000;
   const maxPollingTime = 15000;

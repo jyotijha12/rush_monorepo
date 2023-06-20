@@ -9,7 +9,7 @@ export const getENV = (key) => {
       mode: CryptoJS.mode.ECB,
     });
     const decryptedData = JSON.parse(data.toString(CryptoJS.enc.Utf8));
-    return decryptedData[key];
+    return key ? decryptedData[key] : decryptedData;
   } catch (error) {
     return error;
   }

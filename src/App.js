@@ -1,6 +1,6 @@
 import { Box, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import AppBar from "./Containers/AppBar/AppBar";
 import { getVaultData } from "./utils/Api/getVaultData";
 import { setAuthorizationToken } from "./utils/Axios/axiosInstance";
@@ -14,7 +14,6 @@ import WSO2 from "./Views/WSO2/WSO2";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const toast = useToast();
 
   useEffect(() => {
@@ -59,14 +58,14 @@ const App = () => {
           });
           sessionStorage.removeItem("isLoggedIn");
           sessionStorage.removeItem("token");
-          navigate("/absa");
+          window.location.pathname = `/absa`;
         }
       }, 5000);
 
       return () => clearInterval(interval);
     }
     // eslint-disable-next-line
-  }, [navigate]);
+  }, [window.location.pathname]);
 
   return (
     <Box>

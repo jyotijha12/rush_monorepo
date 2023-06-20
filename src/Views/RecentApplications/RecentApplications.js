@@ -43,18 +43,22 @@ const RecentApplications = () => {
   useEffect(() => {
     fetchData();
 
-    const intervalId = setInterval(() => {
-      if (window.location.pathname === "/absa/recent-applications") {
-        if (search === "") fetchData();
-      }
-    }, 5000);
+    let intervalId;
+
+    if (search === "") {
+      intervalId = setInterval(() => {
+        if (window.location.pathname === "/absa/recent-applications") {
+          fetchData();
+        }
+      }, 5000);
+    }
 
     return () => {
       clearInterval(intervalId);
     };
 
     // eslint-disable-next-line
-  }, []);
+  }, [search]);
 
   useEffect(() => {
     if (search === "") fetchData();
@@ -114,7 +118,15 @@ const RecentApplications = () => {
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </InputGroup>
-                <Button variant="secondary" w="50%" onClick={handleSearch}>
+                <Button
+                  _disabled={{
+                    bg: "#D9D9D9",
+                    _hover: { bg: "#D9D9D9", cursor: "no-drop" },
+                  }}
+                  isDisabled={search === ""}
+                  w="50%"
+                  onClick={handleSearch}
+                >
                   Search
                 </Button>
               </Flex>
