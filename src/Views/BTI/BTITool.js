@@ -374,7 +374,7 @@ const BTITool = () => {
       formData.applicationId.trim().length !== 16
     ) {
       newErrors.applicationId =
-        "Application number should be 10 digits or 16 digits.";
+        "Application number should be 10 characters or 16 characters.";
     }
 
     if (!formData.type) {
@@ -425,8 +425,10 @@ const BTITool = () => {
         const responseData = response.data.data[0];
         if (responseData.status === "Complete") {
           clearInterval(pollingInterval);
-          setGenerateInsightsDialog({ open: false, data: null });
-          navigate("tableau", { state: { rowData: responseData } });
+          if (window.location.pathname === "/absa/bti-tool") {
+            setGenerateInsightsDialog({ open: false, data: null });
+            navigate("tableau", { state: { rowData: responseData } });
+          }
         } else {
           elapsedTime += intervalTime;
           if (elapsedTime >= totalTime) {
@@ -572,18 +574,13 @@ const BTITool = () => {
                       </Text>
                     </Flex>
                     <Flex
-                      cursor={
-                        formData.applicationId !== "" && !loading
-                          ? "pointer"
-                          : "no-drop"
-                      }
+                      cursor={"pointer"}
                       flexDir="column"
                       justifyContent="center"
                       alignItems="center"
                       onClick={() => {
                         setSaved(false);
-                        formData.applicationId !== "" &&
-                          setUploaderDialog({ open: true, data: null });
+                        setUploaderDialog({ open: true, data: null });
                       }}
                     >
                       <Add style={{ color: "#455468" }} />
@@ -761,11 +758,13 @@ const BTITool = () => {
         <Flex justifyContent="center" alignItems="center" mt="0">
           <Flex w="70%" justifyContent="flex-end">
             <Button
+              isDisabled={loadingSave || saved}
               mr={4}
               w="25%"
-              cursor={!loadingSave && saved ? "no-drop" : "pointer"}
-              onClick={() => {
-                if (!loadingSave && !saved) saveRequest();
+              onClick={saveRequest}
+              _disabled={{
+                bg: "#D9D9D9",
+                _hover: { bg: "#D9D9D9", cursor: "no-drop" },
               }}
               rightIcon={
                 loadingSave && (
@@ -780,18 +779,17 @@ const BTITool = () => {
               Save Request
             </Button>
             <Button
-              cursor={
-                saved &&
-                errorData &&
-                !Object.values(errorData).includes("error")
-                  ? "pointer"
-                  : "no-drop"
+              isDisabled={
+                !saved ||
+                (errorData && Object.values(errorData).includes("error")) ||
+                fileLoading
               }
-              w="25%"
-              onClick={() => {
-                if (saved && !Object.values(errorData).includes("error"))
-                  handleProcessRequest();
+              _disabled={{
+                bg: "#D9D9D9",
+                _hover: { bg: "#D9D9D9", cursor: "no-drop" },
               }}
+              w="25%"
+              onClick={handleProcessRequest}
             >
               Process Request
             </Button>
