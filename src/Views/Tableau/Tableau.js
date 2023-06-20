@@ -108,14 +108,14 @@ const Tableau = () => {
                     </Flex>
                   ) : (
                     <Flex w="100%" flexDir="column" gap={8}>
-                      <Text variant="body8" textAlign="left">
+                      <Text fontSize="18px" fontWeight={600} textAlign="left">
                         Errors & Warnings
                       </Text>
 
                       {errors.length === 0 && warnings.length === 0 ? (
-                        <Flex w="100%" justifyContent="center" mt={10}>
-                          <Text textAlign="center">
-                            No errors and warnings!!
+                        <Flex w="100%" mt={4}>
+                          <Text textAlign="left" fontWeight={600}>
+                            <li>There are no errors/warnings</li>
                           </Text>
                         </Flex>
                       ) : (
