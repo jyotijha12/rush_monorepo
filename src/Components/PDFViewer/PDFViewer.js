@@ -6,7 +6,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pd
 
 const PDFViewer1 = (props) => {
   const [numPages, setNumPages] = useState(null);
-  // const [page, setPage] = useState(null);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
@@ -22,25 +21,6 @@ const PDFViewer1 = (props) => {
           ))}
         </Document>
       )}
-      {/* {Boolean(numPages) && (
-        <nav>
-          <ul className="pager">
-            <li className="previous">
-              <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-                Previous
-              </button>
-            </li>
-            <li className="next">
-              <button
-                disabled={page === numPages}
-                onClick={() => setPage(page + 1)}
-              >
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
-      )} */}
     </Box>
   );
 };
