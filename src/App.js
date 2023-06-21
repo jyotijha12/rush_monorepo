@@ -6,7 +6,6 @@ import { getVaultData } from "./utils/Api/getVaultData";
 import { setAuthorizationToken } from "./utils/Axios/axiosInstance";
 import { isTokenExpired } from "./utils/JWT/isTokenExpired";
 import BTITool from "./Views/BTI/BTITool";
-import ChangePassword from "./Views/ChangePassword/ChangePassword";
 import Login from "./Views/Login/Login";
 import RecentApplications from "./Views/RecentApplications/RecentApplications";
 import Tableau from "./Views/Tableau/Tableau";
@@ -79,7 +78,6 @@ const App = () => {
               <Route path="/wso2login" element={<WSO2 />} />
               <Route path="/bti-tool" element={<BTITool />} />
               <Route path="/bti-tool/tableau" element={<Tableau />} />
-              <Route path="/change-password" element={<ChangePassword />} />
               <Route
                 path="/recent-applications"
                 element={<RecentApplications />}
