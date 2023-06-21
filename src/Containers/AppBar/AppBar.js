@@ -1,7 +1,6 @@
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import ABSA from "../../Resources/ABSALogo.svg";
 import EXL from "../../Resources/EXLLogo.svg";
-import Lock from "../../Resources/CircleLock.svg";
 import Logout from "../../Resources/SignOutLogout.svg";
 import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../../utils/Axios/axiosInstance";
@@ -84,20 +83,6 @@ const AppBar = () => {
                 alignItems="center"
                 w="100%"
               >
-                <Flex
-                  gap={2}
-                  justifyContent="center"
-                  alignItems="center"
-                  cursor="pointer"
-                  onClick={() => navigate("change-password")}
-                >
-                  <Text variant="body6" color="custom.main">
-                    Change password
-                  </Text>
-                  <Box h="25px">
-                    <Image src={Lock} h="100%" />
-                  </Box>
-                </Flex>
                 <Flex
                   gap={2}
                   justifyContent="center"

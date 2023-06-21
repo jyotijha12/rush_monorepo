@@ -24,7 +24,7 @@ const Login = () => {
     <Flex justifyContent="center" alignItems="center" h="600px">
       <Flex
         w="70%"
-        h="510px"
+        h="500px"
         border="4px solid"
         borderColor="primary.main"
         borderRadius="40px"
@@ -85,11 +85,6 @@ const Login = () => {
               )}
             </InputRightElement>
           </InputGroup>
-        </Flex>
-        <Flex w="100%" justifyContent="center" alignItems="center" mt={4}>
-          <Text variant="body5" textAlign="left" w="60%" cursor="pointer">
-            Forgot Password?
-          </Text>
         </Flex>
         <Flex
           justifyContent="center"
