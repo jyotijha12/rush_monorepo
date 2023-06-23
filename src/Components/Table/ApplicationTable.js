@@ -146,7 +146,7 @@ const ApplicationTable = (props) => {
                     <Td fontSize="13.5px">
                       {moment
                         .utc(item.modified_at)
-                        .add(2, "hours")
+                        .subtract(2, "hours")
                         .format("YYYY-MM-DD HH:mm:ss")}
                     </Td>
                   </Tr>

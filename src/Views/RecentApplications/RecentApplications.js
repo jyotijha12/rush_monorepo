@@ -6,6 +6,7 @@ import {
   InputGroup,
   InputRightElement,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { useEffect, useState } from "react";
@@ -16,6 +17,9 @@ import { axiosInstance } from "../../utils/Axios/axiosInstance";
 const RecentApplications = () => {
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
+
+  const alphanumericRegex = /^[a-zA-Z0-9]*$/;
+  const toast = useToast();
 
   const navigate = useNavigate();
 
@@ -65,10 +69,20 @@ const RecentApplications = () => {
   }, [search]);
 
   const handleSearch = () => {
-    if (search === "") {
-      setFilteredData(filteredData);
+    if (alphanumericRegex.test(search)) {
+      if (search === "") {
+        setFilteredData(filteredData);
+      } else {
+        fetchData(search);
+      }
     } else {
-      fetchData(search);
+      toast({
+        title: "Invalid search",
+        description: "Search accepts only alphanumeric characters.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
@@ -116,6 +130,11 @@ const RecentApplications = () => {
                     placeholder="Search for application number"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === " ") {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </InputGroup>
                 <Button
