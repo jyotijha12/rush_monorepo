@@ -70,6 +70,7 @@ const BTITool = () => {
 
   const tempTypetypes = getENV("types");
   const types = JSON.parse(tempTypetypes);
+  const alphanumericRegex = /^[a-zA-Z0-9]*$/;
 
   const saveFiles = async (id) => {
     if (id) {
@@ -367,14 +368,19 @@ const BTITool = () => {
   const isValid = () => {
     const newErrors = {};
 
-    if (!formData.applicationId.trim()) {
-      newErrors.applicationId = "Application number is required.";
-    } else if (
-      formData.applicationId.trim().length !== 10 &&
-      formData.applicationId.trim().length !== 16
-    ) {
+    if (alphanumericRegex.test(formData.applicationId)) {
+      if (!formData.applicationId.trim()) {
+        newErrors.applicationId = "Application number is required.";
+      } else if (
+        formData.applicationId.trim().length !== 10 &&
+        formData.applicationId.trim().length !== 16
+      ) {
+        newErrors.applicationId =
+          "Application number should be 10 characters or 16 characters.";
+      }
+    } else {
       newErrors.applicationId =
-        "Application number should be 10 characters or 16 characters.";
+        "Application number accepts alphanumeric characters.";
     }
 
     if (!formData.type) {
@@ -512,6 +518,11 @@ const BTITool = () => {
                       searchLoading
                     }
                     maxLength={16}
+                    onKeyDown={(e) => {
+                      if (e.key === " ") {
+                        e.preventDefault();
+                      }
+                    }}
                     value={formData.applicationId}
                     onChange={(e) =>
                       setFormData({
@@ -539,7 +550,12 @@ const BTITool = () => {
             <Flex w="100%" mt={4}>
               <Flex w="59%" gap={4}>
                 <Flex flexDir="column" gap={1} w="100%">
-                  <Text variant="body1semiBold">Type</Text>
+                  <Flex w="100%">
+                    <Text variant="body1semiBold">Type</Text>
+                    <Text variant="body1semiBold" color="primary.main">
+                      *
+                    </Text>
+                  </Flex>
                   <CustomSelect
                     types={types}
                     formData={formData}
@@ -549,9 +565,14 @@ const BTITool = () => {
                 </Flex>
               </Flex>
             </Flex>
-            <Text mt={6} variant="body1">
-              Upload Bank Statements
-            </Text>
+            <Flex w="100%">
+              <Text mt={6} variant="body1">
+                Upload Bank Statements
+              </Text>
+              <Text mt={6} variant="body1semiBold" color="primary.main">
+                *
+              </Text>
+            </Flex>
             <Flex mt={4}>
               <Card w="100%">
                 <Flex
