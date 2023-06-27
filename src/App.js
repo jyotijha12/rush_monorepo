@@ -2,8 +2,12 @@ import { Box, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import AppBar from "./Containers/AppBar/AppBar";
+import { getCSRF } from "./utils/Api/getCSRF";
 import { getVaultData } from "./utils/Api/getVaultData";
-import { setAuthorizationToken } from "./utils/Axios/axiosInstance";
+import {
+  setAuthorizationToken,
+  setCSRFToken,
+} from "./utils/Axios/axiosInstance";
 import { isTokenExpired } from "./utils/JWT/isTokenExpired";
 import BTITool from "./Views/BTI/BTITool";
 import Login from "./Views/Login/Login";
@@ -16,10 +20,17 @@ const App = () => {
   const toast = useToast();
 
   useEffect(() => {
+    getCSRF();
+
     const token = JSON.parse(sessionStorage.getItem("token"));
+    const csrfToken = JSON.parse(sessionStorage.getItem("CSRF"));
+
     if (token) {
       setAuthorizationToken(token.access_token);
       getVaultData();
+    }
+    if (csrfToken) {
+      setCSRFToken();
     }
 
     localStorage.setItem("chakra-ui-color-mode", "light");

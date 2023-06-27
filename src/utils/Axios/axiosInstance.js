@@ -12,4 +12,12 @@ const setAuthorizationToken = (token) => {
   }
 };
 
-export { setAuthorizationToken, axiosInstance };
+const setCSRFToken = (csrfToken) => {
+  if (csrfToken) {
+    axiosInstance.defaults.headers.common["X-CSRF-Token"] = csrfToken;
+  } else {
+    delete axiosInstance.defaults.headers.common["X-CSRF-Token"];
+  }
+};
+
+export { setAuthorizationToken, setCSRFToken, axiosInstance };
