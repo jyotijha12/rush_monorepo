@@ -9,10 +9,6 @@ export const getCSRF = () => {
   axios
     .request(config)
     .then((response) => {
-      console.log("getting the token from backend",JSON.stringify(response.data.data));
-      sessionStorage.setItem('CSRF',response.data.data)
-    })
-    .catch((error) => {
-      console.error("Failed to get CSRF token:", error);
+      sessionStorage.setItem('CSRF', response.data.data);
     });
 };
