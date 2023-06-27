@@ -23,14 +23,14 @@ const App = () => {
     getCSRF();
 
     const token = JSON.parse(sessionStorage.getItem("token"));
-    const csrfToken = JSON.parse(sessionStorage.getItem("CSRF"));
+    const csrfToken = sessionStorage.getItem("CSRF");
 
     if (token) {
       setAuthorizationToken(token.access_token);
       getVaultData();
     }
     if (csrfToken) {
-      setCSRFToken();
+      setCSRFToken(csrfToken);
     }
 
     localStorage.setItem("chakra-ui-color-mode", "light");

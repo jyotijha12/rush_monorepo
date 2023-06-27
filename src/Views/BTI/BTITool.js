@@ -425,6 +425,9 @@ const BTITool = () => {
       let config = {
         method: "post",
         url: `/api/get_data/`,
+        headers: {
+          "Content-Type": "text/plain",
+        },
         data: data,
       };
       axiosInstance.request(config).then((response) => {
