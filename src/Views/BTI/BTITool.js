@@ -434,15 +434,23 @@ const BTITool = () => {
         const responseData = response.data.data[0];
         if (responseData.status === "Complete") {
           clearInterval(pollingInterval);
-          if (window.location.pathname === "/absa/bti-tool") {
+          if (
+            window.location.pathname ===
+            `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_BTI_SOLUTION}`
+          ) {
             setGenerateInsightsDialog({ open: false, data: null });
-            navigate("tableau", { state: { rowData: responseData } });
+            navigate(`${process.env.REACT_APP_TABLEAU}`, {
+              state: { rowData: responseData },
+            });
           }
         } else {
           elapsedTime += intervalTime;
           if (elapsedTime >= totalTime) {
             clearInterval(pollingInterval);
-            if (window.location.pathname === "/absa/bti-tool") {
+            if (
+              window.location.pathname ===
+              `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_BTI_SOLUTION}`
+            ) {
               toast({
                 title: "Redirecting",
                 description: "Redirecting to Home Screen in 5 seconds",
@@ -450,7 +458,7 @@ const BTITool = () => {
                 duration: 5000,
                 isClosable: true,
               });
-              setTimeout(() => navigate("/recent-applications"), 5000);
+              setTimeout(() => navigate(`${process.env.REACT_APP_HOME}`), 5000);
             }
           }
         }

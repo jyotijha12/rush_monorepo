@@ -44,7 +44,7 @@ const Tableau = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 
     if (!location.state) {
-      navigate("/recent-applications");
+      navigate(`${process.env.REACT_APP_HOME}`);
     } else {
       setErrors(location.state.rowData.errors);
       setWarnings(location.state.rowData.warnings);
@@ -100,7 +100,9 @@ const Tableau = () => {
                       <Flex justifyContent="flex-end">
                         <Button
                           w="20%"
-                          onClick={() => navigate("/recent-applications")}
+                          onClick={() =>
+                            navigate(`${process.env.REACT_APP_HOME}`)
+                          }
                         >
                           Done
                         </Button>
@@ -148,7 +150,9 @@ const Tableau = () => {
                           <Flex justifyContent="flex-end">
                             <Button
                               w="20%"
-                              onClick={() => navigate("/recent-applications")}
+                              onClick={() =>
+                                navigate(`${process.env.REACT_APP_HOME}`)
+                              }
                             >
                               Done
                             </Button>
