@@ -115,11 +115,14 @@ const ApplicationTable = (props) => {
                           textDecoration="underline"
                           cursor="pointer"
                           onClick={() =>
-                            navigate("/bti-tool/tableau", {
-                              state: {
-                                rowData: item,
-                              },
-                            })
+                            navigate(
+                              `${process.env.REACT_APP_BTI_SOLUTION}${process.env.REACT_APP_TABLEAU}`,
+                              {
+                                state: {
+                                  rowData: item,
+                                },
+                              }
+                            )
                           }
                         >
                           View details
@@ -130,7 +133,7 @@ const ApplicationTable = (props) => {
                           textDecoration="underline"
                           cursor="pointer"
                           onClick={() =>
-                            navigate("/bti-tool", {
+                            navigate(`${process.env.REACT_APP_BTI_SOLUTION}`, {
                               state: {
                                 rowData: item,
                               },

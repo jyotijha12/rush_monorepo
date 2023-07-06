@@ -2,7 +2,7 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_BASE_API_URL,
-  withCredentials: true
+  withCredentials: true,
 });
 
 const setAuthorizationToken = (token) => {
@@ -15,9 +15,9 @@ const setAuthorizationToken = (token) => {
 
 const setCSRFToken = (csrfToken) => {
   if (csrfToken) {
-    axiosInstance.defaults.headers.common["X-CSRF-Token"] = csrfToken;
+    axiosInstance.defaults.headers.common["X-CSRFToken"] = csrfToken;
   } else {
-    delete axiosInstance.defaults.headers.common["X-CSRF-Token"];
+    delete axiosInstance.defaults.headers.common["X-CSRFToken"];
   }
 };
 

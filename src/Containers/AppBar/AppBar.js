@@ -41,12 +41,12 @@ const AppBar = () => {
       .then(() => {
         sessionStorage.removeItem("isLoggedIn");
         sessionStorage.removeItem("token");
-        window.location.pathname = `/absa`;
+        window.location.pathname = `${process.env.REACT_APP_BASENAME}`;
       })
       .catch(() => {
         sessionStorage.removeItem("isLoggedIn");
         sessionStorage.removeItem("token");
-        window.location.pathname = `/absa`;
+        window.location.pathname = `${process.env.REACT_APP_BASENAME}`;
       });
   };
 
@@ -104,10 +104,16 @@ const AppBar = () => {
                 <Image
                   src={ABSA}
                   h="100%"
-                  cursor={window.location.pathname !== "/absa" ? "pointer" : ""}
+                  cursor={
+                    window.location.pathname !==
+                    `${process.env.REACT_APP_BASENAME}`
+                      ? "pointer"
+                      : ""
+                  }
                   onClick={() =>
-                    window.location.pathname !== "/absa"
-                      ? navigate("/recent-applications")
+                    window.location.pathname !==
+                    `${process.env.REACT_APP_BASENAME}`
+                      ? navigate(`${process.env.REACT_APP_HOME}`)
                       : {}
                   }
                 />
@@ -117,7 +123,8 @@ const AppBar = () => {
               </Text>
             </Flex>
 
-            {window.location.pathname !== "/absa" && (
+            {window.location.pathname !==
+              `${process.env.REACT_APP_BASENAME}` && (
               <Flex
                 mr={20}
                 gap={6}

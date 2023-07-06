@@ -51,7 +51,10 @@ const RecentApplications = () => {
 
     if (search === "") {
       intervalId = setInterval(() => {
-        if (window.location.pathname === "/absa/recent-applications") {
+        if (
+          window.location.pathname ===
+          `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_HOME}`
+        ) {
           fetchData();
         }
       }, 5000);
@@ -109,7 +112,10 @@ const RecentApplications = () => {
           p={14}
         >
           <Box>
-            <Button w="40%" onClick={() => navigate("/bti-tool")}>
+            <Button
+              w="40%"
+              onClick={() => navigate(`${process.env.REACT_APP_BTI_SOLUTION}`)}
+            >
               Add New Application
             </Button>
           </Box>
