@@ -29,7 +29,9 @@ const WSO2 = (props) => {
       .then((response) => {
         sessionStorage.setItem("token", JSON.stringify(response.data.data));
         sessionStorage.setItem("isLoggedIn", "true");
-        window.location.assign(`/absa/recent-applications`);
+        window.location.assign(
+          `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_HOME}`
+        );
       })
       .catch(() => {
         toast({
@@ -39,7 +41,7 @@ const WSO2 = (props) => {
           duration: 5000,
           isClosable: false,
         });
-        window.location.pathname = "/absa";
+        window.location.pathname = `${process.env.REACT_APP_BASENAME}`;
       });
 
     // eslint-disable-next-line

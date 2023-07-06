@@ -51,7 +51,7 @@ const GenerationInsightsDialog = (props) => {
             </Flex>
             <Button
               leftIcon={<Home />}
-              onClick={() => navigate("/recent-applications")}
+              onClick={() => navigate(`${process.env.REACT_APP_HOME}`)}
             >
               Redirect to Home Page
             </Button>

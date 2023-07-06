@@ -38,17 +38,18 @@ const App = () => {
     const pathname = window.location.pathname;
 
     if (
-      (isLoggedIn === "true" && pathname === `/absa`) ||
-      (pathname === `/absa/` && token)
+      (isLoggedIn === "true" && pathname === process.env.REACT_APP_BASENAME) ||
+      (pathname === `${process.env.REACT_APP_BASENAME}/` && token)
     ) {
-      window.location.pathname = `/absa/recent-applications`;
+      window.location.pathname = `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_HOME}`;
     } else if (
       isLoggedIn !== "true" &&
-      pathname !== `/absa` &&
-      pathname !== "/absa/wso2login" &&
+      pathname !== `${process.env.REACT_APP_BASENAME}` &&
+      pathname !==
+        `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_WSO2}` &&
       !token
     ) {
-      window.location.pathname = `/absa`;
+      window.location.pathname = `${process.env.REACT_APP_BASENAME}`;
     }
     setLoading(false);
   }, []);
@@ -68,7 +69,7 @@ const App = () => {
           });
           sessionStorage.removeItem("isLoggedIn");
           sessionStorage.removeItem("token");
-          window.location.pathname = `/absa`;
+          window.location.pathname = `${process.env.REACT_APP_BASENAME}`;
         }
       }, 5000);
 
@@ -81,16 +82,25 @@ const App = () => {
     <Box>
       <AppBar />
       {!loading ? (
-        window.location.pathname === `/absa` ? (
+        window.location.pathname === `${process.env.REACT_APP_BASENAME}` ? (
           <Login />
         ) : (
           <Box>
             <Routes>
-              <Route path="/wso2login" element={<WSO2 />} />
-              <Route path="/bti-tool" element={<BTITool />} />
-              <Route path="/bti-tool/tableau" element={<Tableau />} />
               <Route
-                path="/recent-applications"
+                path={`${process.env.REACT_APP_WSO2}`}
+                element={<WSO2 />}
+              />
+              <Route
+                path={`${process.env.REACT_APP_BTI_SOLUTION}`}
+                element={<BTITool />}
+              />
+              <Route
+                path={`${process.env.REACT_APP_BTI_SOLUTION}${process.env.REACT_APP_TABLEAU}`}
+                element={<Tableau />}
+              />
+              <Route
+                path={`${process.env.REACT_APP_HOME}`}
                 element={<RecentApplications />}
               />
             </Routes>
