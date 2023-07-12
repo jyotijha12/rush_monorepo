@@ -13,7 +13,7 @@ export const fetchErrorFile = async (path) => {
   )}`;
 
   const pollingInterval = 3000;
-  const maxPollingTime = 15000;
+  const maxPollingTime = 300000;
   let elapsedTime = 0;
 
   const pollForErrorFile = async () => {
