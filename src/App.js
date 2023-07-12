@@ -19,8 +19,8 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const toast = useToast();
 
-  useEffect(async () => {
-    await getCSRF();
+  useEffect(() => {
+    getCSRF();
 
     const token = JSON.parse(sessionStorage.getItem("token"));
     const csrfToken = sessionStorage.getItem("CSRF");
