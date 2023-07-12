@@ -6,7 +6,7 @@ AWS.config.update({
   secretAccessKey: getENV("REACT_APP_AWS_SECRET_ACCESS_KEY"),
 });
 
-export const uploadFile = async (applicationId, instanceId, files) => {
+export const uploadStatusFile = async (applicationId, instanceId, files) => {
   const bucketName = getENV("REACT_APP_AWS_S3_BUCKET");
   const folderName = getENV("REACT_APP_AWS_S3_STAGING_PATH");
 
@@ -24,6 +24,21 @@ export const uploadFile = async (applicationId, instanceId, files) => {
 
       await s3.upload(params).promise();
     }
+
+    const statusContent = {};
+    for (const file of files) {
+      statusContent[file.name] = "success";
+    }
+
+    const statusFileName = "status.json";
+    const statusKey = `${folderName}/${applicationId}/${instanceId}/${statusFileName}`;
+    const statusParams = {
+      Bucket: bucketName,
+      Key: statusKey,
+      Body: JSON.stringify(statusContent),
+    };
+    await s3.upload(statusParams).promise();
+
     return true;
   } catch (error) {
     return false;

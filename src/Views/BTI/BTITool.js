@@ -28,6 +28,7 @@ import { fetchErrorFile } from "../../utils/S3/fetchErrorFile";
 import { axiosInstance } from "../../utils/Axios/axiosInstance";
 import { getENV } from "../../utils/Encryption/getENV";
 import CustomSelect from "../../Components/CustomSelect/CustomSelect";
+import { uploadStatusFile } from "../../utils/S3/uploadStatusFile";
 
 const BTITool = () => {
   const [uploaderDialog, setUploaderDialog] = useState({
@@ -75,6 +76,8 @@ const BTITool = () => {
   const saveFiles = async (id) => {
     if (id) {
       await uploadFile(formData.applicationId, id, files);
+      await uploadStatusFile(formData.applicationId, id, files);
+
       const fileList = await listFiles(`${formData.applicationId}/${id}`);
       setS3FileList(fileList);
 
@@ -349,19 +352,21 @@ const BTITool = () => {
   }, [formData.applicationId]);
 
   useEffect(() => {
-    const getList = async () => {
-      if (
-        formData.applicationId.length === 10 ||
-        formData.applicationId.length === 16
-      ) {
-        !location.state && getUniqueInstanceId(false);
-        const fileList = await listFiles(
-          `${formData.applicationId}/${uniqueInstanceId}`
-        );
-        setS3FileList(fileList);
-      }
-    };
-    getList();
+    if (location.state) {
+      const getList = async () => {
+        if (
+          formData.applicationId.length === 10 ||
+          formData.applicationId.length === 16
+        ) {
+          !location.state && getUniqueInstanceId(false);
+          const fileList = await listFiles(
+            `${formData.applicationId}/${uniqueInstanceId}`
+          );
+          setS3FileList(fileList);
+        }
+      };
+      getList();
+    }
     // eslint-disable-next-line
   }, [formData.applicationId]);
 
@@ -439,9 +444,12 @@ const BTITool = () => {
             `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_BTI_SOLUTION}`
           ) {
             setGenerateInsightsDialog({ open: false, data: null });
-            navigate(`${process.env.REACT_APP_TABLEAU}`, {
-              state: { rowData: responseData },
-            });
+            navigate(
+              `${process.env.REACT_APP_BTI_SOLUTION}${process.env.REACT_APP_TABLEAU}`,
+              {
+                state: { rowData: responseData },
+              }
+            );
           }
         } else {
           elapsedTime += intervalTime;
@@ -739,9 +747,9 @@ const BTITool = () => {
                                           : ""
                                       }
                                       cursor={
-                                        s3FileList.includes(file.name) &&
                                         errorData &&
-                                        errorData[file.name] !== "error"
+                                        errorData[file.name] !== "error" &&
+                                        s3FileList.includes(file.name)
                                           ? "pointer"
                                           : "no-drop"
                                       }

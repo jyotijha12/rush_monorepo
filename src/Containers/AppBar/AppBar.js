@@ -140,7 +140,7 @@ const AppBar = () => {
                 >
                   <Text>{greeting}</Text>
                   <Text>{token && parseJwt(token.access_token).sub}</Text>
-                  <Avatar size="xs" src="https://bit.ly/broken-link" />
+                  <Avatar size="xs" />
                 </Flex>
                 <Flex
                   h="25px"
