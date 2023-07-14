@@ -31,12 +31,12 @@ const Tableau = () => {
   const location = useLocation();
 
   const tabList = {
-    "Customer Insights - Income": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/IncomeOverview?:origin=card_share_link&:embed=n`,
-    "Customer Insights - Expenses": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/ExpenseOverview?:origin=card_share_link&:embed=n`,
-    "Application Overview": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/ApplicationOverview?:origin=card_share_link&:embed=n`,
-    "Transaction Output": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/Transactionleveloutput?:origin=card_share_link&:embed=n`,
-    "Transactions Summary": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/Summary-Transactions?:origin=card_share_link&:embed=n`,
-    "Digitized Bank Statement Data": `${process.env.REACT_APP_TABLEAU_SERVER_URL}/views/20220523_BTI_UI_OutputScreens_ID1/Digitizeddata?:origin=card_share_link&:embed=n`,
+    "Customer Insights - Income": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_INCOME}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
+    "Customer Insights - Expenses": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_EXPENSE}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
+    "Application Overview": `${process.env.REACT_APP_APPLICATION_OVERVIEW}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
+    "Transaction Output": `${process.env.REACT_APP_TRANSACTION_OUTPUT}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
+    "Transactions Summary": `${process.env.REACT_APP_TRANSACTIONS_SUMMARY}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
+    "Digitized Bank Statement Data": `${process.env.REACT_APP_DIGITIZED_BANK_STATEMENT_DATA}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
     "Errors & Warnings": "",
   };
 
