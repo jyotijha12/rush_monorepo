@@ -4,6 +4,7 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalContent,
+  ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
 import PDFViewer from "../PDFViewer/PDFViewer";
@@ -19,8 +20,9 @@ const ViewFileDialog = (props) => {
     >
       <ModalOverlay />
       <ModalContent>
+        <ModalHeader>{props.data && props.data.name}</ModalHeader>
         <ModalCloseButton />
-        <ModalBody mt={10}>
+        <ModalBody mt={2}>
           <Flex
             w="100%"
             alignItems="center"

@@ -102,11 +102,9 @@ const ApplicationTable = (props) => {
                     <Td fontSize="13.5px">
                       {item.errors.length > 0 || item.warnings.length > 0
                         ? item.errors.length > 0
-                          ? item.errors[0].external_error.substring(0, 10) +
-                            "..."
-                          : item.warnings[0].external_warning.substring(0, 10) +
-                            "..."
-                        : "No Errors"}
+                          ? "Error"
+                          : "Warning"
+                        : "No Error"}
                     </Td>
                     <Td>
                       {item.status === "Complete" ? (

@@ -177,12 +177,91 @@ const BTITool = () => {
       });
   };
 
+  const redirectSave = (data) => {
+    setSaved(true);
+    setFileLoading(true);
+    setFormData({
+      ...formData,
+      applicationId: data.application_id,
+      instanceId: data.instance_id,
+      type: data.use_case_id,
+    });
+    setUniqueInstanceId(data.instance_unique_id);
+    getFiles(data);
+  };
+
   const fileInput = useRef(null);
 
   const handleClick = () => {
     if (fileInput && fileInput.current) {
       fileInput.current.click();
     }
+  };
+
+  const getFiles = async (obj) => {
+    let data = new FormData();
+    data.append(
+      "application_id",
+      obj ? obj.application_id : location.state.rowData.application_id
+    );
+    data.append(
+      "instance_id",
+      obj ? obj.instance_id : location.state.rowData.instance_id
+    );
+
+    let config = {
+      method: "post",
+      url: `/api/get_data/`,
+      data: data,
+    };
+    axiosInstance
+      .request(config)
+      .then(async (response) => {
+        if (!obj)
+          if (response.data.data[0].status === "Processing") {
+            setGenerateInsightsDialog({ open: true, data: null });
+          }
+
+        const data = response.data.data.filter(
+          (item) => item.status === "Saved"
+        )[0];
+        if (obj) {
+          const filesObject = await listFilesObject(
+            `${obj.application_id}/${data.instance_unique_id}`
+          );
+          setFiles(filesObject);
+
+          const fileList = await listFiles(
+            `${obj.application_id}/${data.instance_unique_id}`
+          );
+          setS3FileList(fileList);
+
+          const fileData = await fetchErrorFile(
+            `${obj.application_id}/${data.instance_unique_id}`
+          );
+          setFileLoading(false);
+          setErrorData(fileData ? fileData : null);
+        } else {
+          const filesObject = await listFilesObject(
+            `${location.state.rowData.application_id}/${data.instance_unique_id}`
+          );
+          setFiles(filesObject);
+
+          const fileList = await listFiles(
+            `${location.state.rowData.application_id}/${data.instance_unique_id}`
+          );
+          setS3FileList(fileList);
+
+          const fileData = await fetchErrorFile(
+            `${location.state.rowData.application_id}/${data.instance_unique_id}`
+          );
+          setFileLoading(false);
+          setErrorData(fileData ? fileData : null);
+        }
+      })
+      .catch(() => {
+        setFileLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -199,45 +278,6 @@ const BTITool = () => {
         type: location.state.rowData.use_case_id,
       });
       setUniqueInstanceId(location.state.rowData.instance_unique_id);
-
-      const getFiles = async () => {
-        let data = new FormData();
-        data.append("application_id", location.state.rowData.application_id);
-        data.append("instance_id", location.state.rowData.instance_id);
-
-        let config = {
-          method: "post",
-          url: `/api/get_data/`,
-          data: data,
-        };
-        axiosInstance
-          .request(config)
-          .then(async (response) => {
-            if (response.data.data[0].status === "Processing") {
-              setGenerateInsightsDialog({ open: true, data: null });
-            }
-
-            const data = response.data.data[0];
-            const filesObject = await listFilesObject(
-              `${location.state.rowData.application_id}/${data.instance_unique_id}`
-            );
-            setFiles(filesObject);
-
-            const fileList = await listFiles(
-              `${location.state.rowData.application_id}/${data.instance_unique_id}`
-            );
-            setS3FileList(fileList);
-
-            const fileData = await fetchErrorFile(
-              `${location.state.rowData.application_id}/${data.instance_unique_id}`
-            );
-            setFileLoading(false);
-            setErrorData(fileData ? fileData : null);
-          })
-          .catch(() => {
-            setFileLoading(false);
-          });
-      };
 
       getFiles();
     }
@@ -265,7 +305,7 @@ const BTITool = () => {
             response.data.data.length > 0 &&
             response.data.data[0].application_id === formData.applicationId
           ) {
-            setApplicationDialog({ open: true, data: null });
+            setApplicationDialog({ open: true, data: response.data.data });
           }
         }
       })
@@ -419,8 +459,6 @@ const BTITool = () => {
 
   const checkStatus = () => {
     const intervalTime = 10000;
-    const totalTime = 120000;
-    let elapsedTime = 0;
     let pollingInterval;
 
     const fetchDataFunc = () => {
@@ -430,52 +468,41 @@ const BTITool = () => {
       let config = {
         method: "post",
         url: `/api/get_data/`,
-        headers: {
-          "Content-Type": "text/plain",
-        },
         data: data,
       };
       axiosInstance.request(config).then((response) => {
-        const responseData = response.data.data[0];
-        if (responseData.status === "Complete") {
-          clearInterval(pollingInterval);
-          if (
-            window.location.pathname ===
-            `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_BTI_SOLUTION}`
-          ) {
-            setGenerateInsightsDialog({ open: false, data: null });
-            navigate(
-              `${process.env.REACT_APP_BTI_SOLUTION}${process.env.REACT_APP_TABLEAU}`,
-              {
-                state: { rowData: responseData },
-              }
-            );
-          }
-        } else {
-          elapsedTime += intervalTime;
-          if (elapsedTime >= totalTime) {
+        if (
+          window.location.pathname ===
+          `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_BTI_SOLUTION}`
+        ) {
+          const responseData = response.data.data[0];
+          if (responseData.status === "Complete") {
             clearInterval(pollingInterval);
             if (
               window.location.pathname ===
               `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_BTI_SOLUTION}`
             ) {
-              toast({
-                title: "Redirecting",
-                description: "Redirecting to Home Screen in 5 seconds",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-              });
-              setTimeout(() => navigate(`${process.env.REACT_APP_HOME}`), 5000);
+              setGenerateInsightsDialog({ open: false, data: null });
+              navigate(
+                `${process.env.REACT_APP_BTI_SOLUTION}${process.env.REACT_APP_TABLEAU}`,
+                {
+                  state: { rowData: responseData },
+                }
+              );
             }
           }
+        } else {
+          clearInterval(pollingInterval);
         }
       });
     };
-
-    fetchDataFunc();
-
-    pollingInterval = setInterval(fetchDataFunc, intervalTime);
+    if (
+      window.location.pathname ===
+      `${process.env.REACT_APP_BASENAME}${process.env.REACT_APP_BTI_SOLUTION}`
+    ) {
+      fetchDataFunc();
+      pollingInterval = setInterval(fetchDataFunc, intervalTime);
+    }
   };
 
   const handleProcessRequest = async () => {
@@ -609,7 +636,7 @@ const BTITool = () => {
                     <Flex flexDir="column">
                       <Text variant="body1">Bank Statements</Text>
                       <Text variant="subtitle1">
-                        Supported file format are .pdf and expected size &lt;
+                        Supported file format is .pdf and expected size &lt;
                         25MB
                       </Text>
                     </Flex>
@@ -712,7 +739,7 @@ const BTITool = () => {
                                 ) : !errorData && scanFailed ? (
                                   <Flex>
                                     <Text>
-                                      Scanning failed retry, save request
+                                      Scan failed, please retry save request
                                     </Text>
                                   </Flex>
                                 ) : (
@@ -859,6 +886,7 @@ const BTITool = () => {
         open={applicationDialog.open}
         data={applicationDialog.data}
         formData={formData}
+        redirectSave={redirectSave}
         setFormData={setFormData}
         onClose={() => setApplicationDialog({ open: false, data: null })}
       />
