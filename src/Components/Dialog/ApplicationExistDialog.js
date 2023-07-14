@@ -10,6 +10,8 @@ import {
 } from "@chakra-ui/react";
 
 const ApplicationExistDialog = (props) => {
+  const data = props.data ? props.data : [];
+
   return (
     <Modal
       size="4xl"
@@ -49,15 +51,30 @@ const ApplicationExistDialog = (props) => {
                 >
                   Change the application number
                 </Button>
-                <Button
-                  variant="secondary"
-                  onClick={async () => {
-                    await props.getUniqueInstanceId(false, "Add");
-                    props.onClose();
-                  }}
-                >
-                  Add as an Instance
-                </Button>
+                {data.filter((item) => item.status === "Saved").length === 0 ? (
+                  <Button
+                    variant="secondary"
+                    onClick={async () => {
+                      await props.getUniqueInstanceId(false, "Add");
+                      props.onClose();
+                    }}
+                  >
+                    Add as an Instance
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    onClick={async () => {
+                      const temp = data.filter(
+                        (item) => item.status === "Saved"
+                      );
+                      await props.redirectSave(temp[0]);
+                      props.onClose();
+                    }}
+                  >
+                    Redirect to saved request
+                  </Button>
+                )}
               </Flex>
             </Flex>
           </Flex>
