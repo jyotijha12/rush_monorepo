@@ -15,13 +15,6 @@ import { useTheme } from "@emotion/react";
 import ErrorWarningTable from "../../Components/Table/ErrorWarningTable";
 import { useEffect, useState } from "react";
 
-const options = {
-  height: window.screen.height < 768 ? 300 : window.screen.height - 300,
-  width: window.screen.width < 1094 ? 750 : 1024,
-  hideTabs: true,
-  device: "desktop",
-};
-
 const Tableau = () => {
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
@@ -30,13 +23,22 @@ const Tableau = () => {
   const theme = useTheme();
   const location = useLocation();
 
+  const options = {
+    height: window.screen.height < 768 ? 300 : window.screen.height - 300,
+    width: window.screen.width < 1094 ? 750 : 1024,
+    hideTabs: true,
+    device: "desktop",
+    required_application_id: location.state.rowData.application_id,
+    required_unique_instance_id: location.state.rowData.application_id,
+  };
+
   const tabList = {
-    "Customer Insights - Income": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_INCOME}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Customer Insights - Expenses": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_EXPENSE}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Application Overview": `${process.env.REACT_APP_APPLICATION_OVERVIEW}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Transaction Output": `${process.env.REACT_APP_TRANSACTION_OUTPUT}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Transactions Summary": `${process.env.REACT_APP_TRANSACTIONS_SUMMARY}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Digitized Bank Statement Data": `${process.env.REACT_APP_DIGITIZED_BANK_STATEMENT_DATA}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
+    "Customer Insights - Income": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_INCOME}`,
+    "Customer Insights - Expenses": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_EXPENSE}`,
+    "Application Overview": `${process.env.REACT_APP_APPLICATION_OVERVIEW}`,
+    "Transaction Output": `${process.env.REACT_APP_TRANSACTION_OUTPUT}`,
+    "Transactions Summary": `${process.env.REACT_APP_TRANSACTIONS_SUMMARY}`,
+    "Digitized Bank Statement Data": `${process.env.REACT_APP_DIGITIZED_BANK_STATEMENT_DATA}`,
     "Errors & Warnings": "",
   };
 
@@ -96,7 +98,11 @@ const Tableau = () => {
                 <Flex w="100%" px={20} py={10} justifyContent="center">
                   {value !== "" ? (
                     <Flex gap={8} flexDir="column">
-                      <TableauReport options={options} url={value} />
+                      <TableauReport
+                        options={options}
+                        url={value}
+                        token={sessionStorage.getItem("tableauToken")}
+                      />
                       <Flex justifyContent="flex-end">
                         <Button
                           w="20%"
