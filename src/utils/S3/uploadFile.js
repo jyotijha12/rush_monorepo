@@ -14,7 +14,7 @@ export const uploadFile = async (applicationId, instanceId, files) => {
   const s3 = new AWS.S3();
 
   try {
-    for (const file of files) {
+    const uploadPromises = files.map((file) => {
       const key = `${folderName}/${applicationId}/${instanceId}/${file.name}`;
 
       const params = {
@@ -23,8 +23,11 @@ export const uploadFile = async (applicationId, instanceId, files) => {
         Body: file,
       };
 
-      await s3.upload(params).promise();
-    }
+      return s3.upload(params).promise();
+    });
+
+    await Promise.all(uploadPromises);
+
     return true;
   } catch (error) {
     return false;
