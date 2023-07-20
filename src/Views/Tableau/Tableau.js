@@ -2,11 +2,10 @@ import TableauReport from "tableau-react";
 import {
   Box,
   Button,
+  CircularProgress,
   Flex,
   Tab,
   TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
   Text,
 } from "@chakra-ui/react";
@@ -14,33 +13,63 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@emotion/react";
 import ErrorWarningTable from "../../Components/Table/ErrorWarningTable";
 import { useEffect, useState } from "react";
-
-const options = {
-  height: window.screen.height < 768 ? 300 : window.screen.height - 300,
-  width: window.screen.width < 1094 ? 750 : 1024,
-  hideTabs: true,
-  device: "desktop",
-};
+import { getTableauToken } from "../../utils/Api/getTableauToken";
 
 const Tableau = () => {
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
+  const [trustedToken, setTrustedToken] = useState("");
+  const [selectedTab, setSelectedTab] = useState();
+  const [tokenLoading, setTokenLoading] = useState(true);
+  const [tabList] = useState({
+    "Customer Insights - Expenses": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_EXPENSE}`,
+    "Application Overview": `${process.env.REACT_APP_APPLICATION_OVERVIEW}`,
+    "Transaction Output": `${process.env.REACT_APP_TRANSACTION_OUTPUT}`,
+    "Transactions Summary": `${process.env.REACT_APP_TRANSACTIONS_SUMMARY}`,
+    "Digitized Bank Statement Data": `${process.env.REACT_APP_DIGITIZED_BANK_STATEMENT_DATA}`,
+    "Errors & Warnings": "",
+  });
 
   const navigate = useNavigate();
   const theme = useTheme();
   const location = useLocation();
 
-  const tabList = {
-    "Customer Insights - Income": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_INCOME}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Customer Insights - Expenses": `${process.env.REACT_APP_CUSTOMER_INSIGHTS_EXPENSE}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Application Overview": `${process.env.REACT_APP_APPLICATION_OVERVIEW}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Transaction Output": `${process.env.REACT_APP_TRANSACTION_OUTPUT}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Transactions Summary": `${process.env.REACT_APP_TRANSACTIONS_SUMMARY}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Digitized Bank Statement Data": `${process.env.REACT_APP_DIGITIZED_BANK_STATEMENT_DATA}&${process.env.REACT_APP_APPLICATION_FILTER_NAME}=${location.state.rowData.application_id}&${process.env.REACT_APP_INSTANCE_FILTER_NAME}=${location.state.rowData.instance_unique_id}`,
-    "Errors & Warnings": "",
+  const options = {
+    height: 1024,
+    width: 1024,
+    hideTabs: true,
+    device: "desktop",
+    required_application_id: location.state.rowData.application_id,
+    required_unique_instance_id: location.state.rowData.application_id,
+  };
+
+  const getData = async () => {
+    if (!tokenLoading) setTokenLoading(true);
+    const token = await getTableauToken();
+    setTrustedToken(token ? token : "");
+    setTokenLoading(false);
   };
 
   useEffect(() => {
+    if (selectedTab === Object.keys(tabList).length - 1) setTokenLoading(false);
+    if (selectedTab || selectedTab === 0) {
+      if (selectedTab !== Object.keys(tabList).length - 1) {
+        getData();
+      }
+    }
+    // eslint-disable-next-line
+  }, [selectedTab]);
+
+  useEffect(() => {
+    setSelectedTab(
+      location.state
+        ? location.state.rowData.errors.length > 0 ||
+          location.state.rowData.warnings.length > 0
+          ? Object.keys(tabList).length - 1
+          : 0
+        : 0
+    );
+
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 
     if (!location.state) {
@@ -56,6 +85,10 @@ const Tableau = () => {
   return (
     <Box w="100%">
       <Tabs
+        onChange={(index) => {
+          if (index !== Object.keys(tabList).length - 1) setTokenLoading(true);
+          setSelectedTab(index);
+        }}
         defaultIndex={
           location.state
             ? location.state.rowData.errors.length > 0 ||
@@ -89,14 +122,75 @@ const Tableau = () => {
           })}
         </TabList>
 
-        <TabPanels>
-          {Object.values(tabList).map((value, i) => {
-            return (
-              <TabPanel key={i}>
-                <Flex w="100%" px={20} py={10} justifyContent="center">
-                  {value !== "" ? (
-                    <Flex gap={8} flexDir="column">
-                      <TableauReport options={options} url={value} />
+        <Box>
+          {tokenLoading ? (
+            <Flex
+              w="100%"
+              px={20}
+              py={10}
+              h="80vh"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <CircularProgress isIndeterminate color="primary.main" />
+            </Flex>
+          ) : (
+            <Flex w="100%" px={20} py={10} justifyContent="center">
+              {tabList[Object.keys(tabList)[selectedTab]] !== "" ? (
+                <Flex gap={8} flexDir="column">
+                  <TableauReport
+                    options={options}
+                    url={tabList[Object.keys(tabList)[selectedTab]]}
+                    token={trustedToken}
+                  />
+                  <Flex justifyContent="flex-end">
+                    <Button
+                      w="20%"
+                      onClick={() => navigate(`${process.env.REACT_APP_HOME}`)}
+                    >
+                      Done
+                    </Button>
+                  </Flex>
+                </Flex>
+              ) : (
+                <Flex w="100%" flexDir="column" gap={8}>
+                  <Text fontSize="18px" fontWeight={600} textAlign="left">
+                    Errors & Warnings
+                  </Text>
+
+                  {errors.length === 0 && warnings.length === 0 ? (
+                    <Flex w="100%" mt={4}>
+                      <Text textAlign="left" fontWeight={600}>
+                        <li>There are no errors/warnings</li>
+                      </Text>
+                    </Flex>
+                  ) : (
+                    <>
+                      <Box>
+                        {errors.length > 0 && (
+                          <ErrorWarningTable
+                            tableName="Errors"
+                            data={errors}
+                            heading={[
+                              "Error Title",
+                              "Error Code",
+                              "Error Description",
+                            ]}
+                          />
+                        )}
+
+                        {warnings.length > 0 && (
+                          <ErrorWarningTable
+                            tableName="Warnings"
+                            data={warnings}
+                            heading={[
+                              "Warning Title",
+                              "Warning Code",
+                              "Warning Description",
+                            ]}
+                          />
+                        )}
+                      </Box>
                       <Flex justifyContent="flex-end">
                         <Button
                           w="20%"
@@ -107,65 +201,13 @@ const Tableau = () => {
                           Done
                         </Button>
                       </Flex>
-                    </Flex>
-                  ) : (
-                    <Flex w="100%" flexDir="column" gap={8}>
-                      <Text fontSize="18px" fontWeight={600} textAlign="left">
-                        Errors & Warnings
-                      </Text>
-
-                      {errors.length === 0 && warnings.length === 0 ? (
-                        <Flex w="100%" mt={4}>
-                          <Text textAlign="left" fontWeight={600}>
-                            <li>There are no errors/warnings</li>
-                          </Text>
-                        </Flex>
-                      ) : (
-                        <>
-                          <Box>
-                            {errors.length > 0 && (
-                              <ErrorWarningTable
-                                tableName="Errors"
-                                data={errors}
-                                heading={[
-                                  "Error Title",
-                                  "Error Code",
-                                  "Error Description",
-                                ]}
-                              />
-                            )}
-
-                            {warnings.length > 0 && (
-                              <ErrorWarningTable
-                                tableName="Warnings"
-                                data={warnings}
-                                heading={[
-                                  "Warning Title",
-                                  "Warning Code",
-                                  "Warning Description",
-                                ]}
-                              />
-                            )}
-                          </Box>
-                          <Flex justifyContent="flex-end">
-                            <Button
-                              w="20%"
-                              onClick={() =>
-                                navigate(`${process.env.REACT_APP_HOME}`)
-                              }
-                            >
-                              Done
-                            </Button>
-                          </Flex>
-                        </>
-                      )}
-                    </Flex>
+                    </>
                   )}
                 </Flex>
-              </TabPanel>
-            );
-          })}
-        </TabPanels>
+              )}
+            </Flex>
+          )}
+        </Box>
       </Tabs>
     </Box>
   );

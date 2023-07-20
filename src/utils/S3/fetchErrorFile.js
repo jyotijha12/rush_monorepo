@@ -1,12 +1,13 @@
 import AWS from "aws-sdk";
 import { getENV } from "../Encryption/getENV";
 
-AWS.config.update({
-  accessKeyId: getENV("REACT_APP_AWS_ACCESS_KEY_ID"),
-  secretAccessKey: getENV("REACT_APP_AWS_SECRET_ACCESS_KEY"),
-});
-
 export const fetchErrorFile = async (path) => {
+  AWS.config.update({
+    accessKeyId: getENV("REACT_APP_AWS_ACCESS_KEY_ID"),
+    secretAccessKey: getENV("REACT_APP_AWS_SECRET_ACCESS_KEY"),
+    region: getENV("REACT_APP_AWS_REGION"),
+  });
+
   const s3 = new AWS.S3();
   const filePath = `${getENV("REACT_APP_AWS_S3_STAGING_PATH")}/${path}/${getENV(
     "REACT_APP_SCANNED_STATUS_FILE"

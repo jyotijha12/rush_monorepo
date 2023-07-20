@@ -3,7 +3,7 @@ import axios from "axios";
 import { useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
-const WSO2 = (props) => {
+const WSO2 = () => {
   const query = useQuery();
   const toast = useToast();
   function useQuery() {

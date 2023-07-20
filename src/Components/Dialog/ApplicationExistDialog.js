@@ -31,9 +31,16 @@ const ApplicationExistDialog = (props) => {
               justifyContent="center"
               alignItems="center"
             >
-              <Text variant="body3" textAlign="center" color="primary.main">
-                This application number already exists!
-              </Text>
+              {data.filter((item) => item.status === "Saved").length === 0 ? (
+                <Text variant="body3" textAlign="center" color="primary.main">
+                  This application number already exists!
+                </Text>
+              ) : (
+                <Text variant="body3" textAlign="center" color="primary.main">
+                  This application number is already saved!
+                </Text>
+              )}
+
               <Text variant="body7" textAlign="center">
                 How would you like to proceed further?
               </Text>
