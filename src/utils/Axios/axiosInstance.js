@@ -19,24 +19,20 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    try {
-      const { toast } = createStandaloneToast();
-      if (error.response && error.response.status === 403) {
-        toast({
-          title: "Session Expired",
-          description: "Redirecting to login page!!",
-          status: "error",
-          duration: 2000,
-          isClosable: true,
-        });
-        sessionStorage.removeItem("isLoggedIn");
-        sessionStorage.removeItem("token");
-        setTimeout(() => {
-          window.location.pathname = `${process.env.REACT_APP_BASENAME}`;
-        }, 2000);
-      }
-    } catch (e) {
-      console.log("toasteeee", e);
+    const { toast } = createStandaloneToast();
+    if (error.response && error.response.status === 403) {
+      toast({
+        title: "Session Expired",
+        description: "Redirecting to login page!!",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+      sessionStorage.removeItem("isLoggedIn");
+      sessionStorage.removeItem("token");
+      setTimeout(() => {
+        window.location.pathname = `${process.env.REACT_APP_BASENAME}`;
+      }, 2000);
     }
 
     throw error;
