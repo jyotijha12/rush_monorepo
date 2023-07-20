@@ -8,6 +8,7 @@ import {
   InputGroup,
   InputRightElement,
   Text,
+  useTheme,
   useToast,
 } from "@chakra-ui/react";
 import { Add } from "@mui/icons-material";
@@ -66,7 +67,7 @@ const BTITool = () => {
   const navigate = useNavigate();
 
   const toast = useToast();
-
+  const theme = useTheme();
   const location = useLocation();
 
   const tempTypetypes = getENV("types");
@@ -75,76 +76,68 @@ const BTITool = () => {
 
   const saveFiles = async (id) => {
     if (id) {
-      await uploadFile(formData.applicationId, id, files);
-      await uploadStatusFile(formData.applicationId, id, files);
+      try {
+        await Promise.all([
+          uploadFile(formData.applicationId, id, files),
+          uploadStatusFile(formData.applicationId, id, files),
+        ]);
 
-      const fileList = await listFiles(`${formData.applicationId}/${id}`);
-      setS3FileList(fileList);
+        setS3FileList(files.map((file) => file.name));
+        setFiles(files);
 
-      const filesObject = await listFilesObject(
-        `${formData.applicationId}/${id}`
-      );
-      setFiles(filesObject);
+        const data_ = {
+          instance_unique_id: id,
+          instance_id: formData.instanceId,
+          application_id: formData.applicationId,
+          input_files: files.map((item) => item.name),
+          use_case_id: formData.type,
+          create_new_instance: false,
+        };
 
-      let data_ = {
-        instance_unique_id: id,
-        instance_id: formData.instanceId,
-        application_id: formData.applicationId,
-        input_files: files.map((item) => item.name),
-        use_case_id: formData.type,
-        create_new_instance: false,
-      };
+        const config = {
+          method: "post",
+          url: `/api/upload_data/`,
+          data: data_,
+        };
 
-      let config = {
-        method: "post",
-        url: `/api/upload_data/`,
-        data: data_,
-      };
-      axiosInstance
-        .request(config)
-        .then(async () => {
-          const filesObject = await listFilesObject(
-            `${formData.applicationId}/${id}`
-          );
-          setFiles(filesObject);
+        await axiosInstance.request(config);
 
-          const fileData = await fetchErrorFile(
-            `${formData.applicationId}/${id}`
-          );
+        const fileData = await fetchErrorFile(
+          `${formData.applicationId}/${id}`
+        );
+        setErrorData(fileData ? fileData : null);
 
-          setErrorData(fileData ? fileData : null);
-          if (fileData) {
-            setLoadingSave(false);
-            setSaved(true);
-            toast({
-              title: "Saved Request",
-              description: "All files saved successfully",
-              status: "success",
-              duration: 5000,
-              isClosable: true,
-            });
-          } else {
-            setLoadingSave(false);
-            setScanFailed(true);
-            toast({
-              title: "Scanning failed",
-              description: "Retry save request",
-              status: "error",
-              duration: 5000,
-              isClosable: true,
-            });
-          }
-        })
-        .catch(() => {
+        if (fileData) {
           setLoadingSave(false);
+          setSaved(true);
           toast({
-            title: "Failed",
-            description: "Failed",
+            title: "Saved Request",
+            description: "All files saved successfully",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+          });
+        } else {
+          setLoadingSave(false);
+          setScanFailed(true);
+          toast({
+            title: "Scanning failed",
+            description: "Retry save request",
             status: "error",
             duration: 5000,
             isClosable: true,
           });
+        }
+      } catch (error) {
+        setLoadingSave(false);
+        toast({
+          title: "Failed",
+          description: "Failed",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
         });
+      }
     }
   };
 
@@ -225,39 +218,23 @@ const BTITool = () => {
         const data = response.data.data.filter(
           (item) => item.status === "Saved"
         )[0];
-        if (obj) {
-          const filesObject = await listFilesObject(
-            `${obj.application_id}/${data.instance_unique_id}`
-          );
-          setFiles(filesObject);
 
-          const fileList = await listFiles(
-            `${obj.application_id}/${data.instance_unique_id}`
-          );
-          setS3FileList(fileList);
+        const applicationId = obj
+          ? obj.application_id
+          : location.state.rowData.application_id;
 
-          const fileData = await fetchErrorFile(
-            `${obj.application_id}/${data.instance_unique_id}`
-          );
-          setFileLoading(false);
-          setErrorData(fileData ? fileData : null);
-        } else {
-          const filesObject = await listFilesObject(
-            `${location.state.rowData.application_id}/${data.instance_unique_id}`
-          );
-          setFiles(filesObject);
+        const filesObject = await listFilesObject(
+          `${applicationId}/${data.instance_unique_id}`
+        );
+        setFiles(filesObject);
 
-          const fileList = await listFiles(
-            `${location.state.rowData.application_id}/${data.instance_unique_id}`
-          );
-          setS3FileList(fileList);
+        setS3FileList(filesObject.map((file) => file.name));
 
-          const fileData = await fetchErrorFile(
-            `${location.state.rowData.application_id}/${data.instance_unique_id}`
-          );
-          setFileLoading(false);
-          setErrorData(fileData ? fileData : null);
-        }
+        const fileData = await fetchErrorFile(
+          `${applicationId}/${data.instance_unique_id}`
+        );
+        setFileLoading(false);
+        setErrorData(fileData ? fileData : null);
       })
       .catch(() => {
         setFileLoading(false);
@@ -265,22 +242,30 @@ const BTITool = () => {
   };
 
   useEffect(() => {
-    if (location.state && location.state.rowData) {
-      setSaved(true);
-      setFileLoading(true);
-      if (location.state.rowData.status === "Processing") {
-        setGenerateInsightsDialog({ open: true, data: null });
-      }
-      setFormData({
-        ...formData,
-        applicationId: location.state.rowData.application_id,
-        instanceId: location.state.rowData.instance_id,
-        type: location.state.rowData.use_case_id,
-      });
-      setUniqueInstanceId(location.state.rowData.instance_unique_id);
+    location.state && location.state.rowData && setFileLoading(true);
+    const fetchData = async () => {
+      try {
+        if (location.state && location.state.rowData) {
+          setSaved(true);
+          if (location.state.rowData.status === "Processing") {
+            setGenerateInsightsDialog({ open: true, data: null });
+          }
+          setFormData({
+            ...formData,
+            applicationId: location.state.rowData.application_id,
+            instanceId: location.state.rowData.instance_id,
+            type: location.state.rowData.use_case_id,
+          });
+          setUniqueInstanceId(location.state.rowData.instance_unique_id);
 
-      getFiles();
-    }
+          await getFiles();
+        }
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    fetchData();
     // eslint-disable-next-line
   }, [location.state]);
 
@@ -314,56 +299,62 @@ const BTITool = () => {
 
   const handleFiles = async (file) => {
     setLoading(true);
-    if (file) {
-      if (file.name.split(".").pop() !== "pdf") {
-        toast({
-          title: "Error",
-          description: "File is not in pdf format!!",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      } else {
-        if (fileSizeToMB(file.size) > 25.0) {
-          toast({
-            title: "Error",
-            description: "File size is greater than 25 MB",
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          const uploadedFile = file;
-          let renamedFile = uploadedFile;
-          let copyCounter = 1;
 
-          const fileExists = files.find(
-            (existingFile) => existingFile.name === uploadedFile.name
-          );
+    if (!file) {
+      setLoading(false);
+      return;
+    }
 
-          if (fileExists) {
-            while (true) {
-              const newFileName = `${
-                uploadedFile.name.split(".")[0]
-              }_copy${copyCounter}.pdf`;
-              const existingFile = files.find(
-                (file) => file.name === newFileName
-              );
+    if (file.name.split(".").pop() !== "pdf") {
+      toast({
+        title: "Error",
+        description: "File is not in pdf format!!",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setLoading(false);
+      return;
+    }
 
-              if (!existingFile) {
-                renamedFile = new File([uploadedFile], newFileName);
-                break;
-              }
-              copyCounter++;
-            }
-          }
+    if (fileSizeToMB(file.size) > 25.0) {
+      toast({
+        title: "Error",
+        description: "File size is greater than 25 MB",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setLoading(false);
+      return;
+    }
 
-          setFiles((prevFiles) => [...prevFiles, renamedFile]);
-          setUploaderDialog({ open: false, data: null });
-          setLoading(false);
+    const uploadedFile = file;
+    let renamedFile = uploadedFile;
+    let copyCounter = 1;
+
+    const fileExists = files.find(
+      (existingFile) => existingFile.name === uploadedFile.name
+    );
+
+    if (fileExists) {
+      while (true) {
+        const newFileName = `${
+          uploadedFile.name.split(".")[0]
+        }_copy${copyCounter}.pdf`;
+        const existingFile = files.find((file) => file.name === newFileName);
+
+        if (!existingFile) {
+          renamedFile = new File([uploadedFile], newFileName);
+          break;
         }
+        copyCounter++;
       }
     }
+
+    setFiles((prevFiles) => [...prevFiles, renamedFile]);
+    setUploaderDialog({ open: false, data: null });
+    setLoading(false);
   };
 
   const fileSizeToMB = (size) => {
@@ -380,52 +371,44 @@ const BTITool = () => {
   };
 
   useEffect(() => {
-    if (!location.state)
-      if (
-        formData.applicationId.length === 10 ||
-        formData.applicationId.length === 16
-      ) {
-        setSearchLoading(true);
-        fetchData();
-      }
-    // eslint-disable-next-line
-  }, [formData.applicationId]);
-
-  useEffect(() => {
-    if (location.state) {
+    if (
+      !location.state &&
+      (formData.applicationId.length === 10 ||
+        formData.applicationId.length === 16)
+    ) {
+      setSearchLoading(true);
+      fetchData();
+    } else if (
+      location.state &&
+      (formData.applicationId.length === 10 ||
+        formData.applicationId.length === 16)
+    ) {
       const getList = async () => {
-        if (
-          formData.applicationId.length === 10 ||
-          formData.applicationId.length === 16
-        ) {
-          !location.state && getUniqueInstanceId(false);
-          const fileList = await listFiles(
-            `${formData.applicationId}/${uniqueInstanceId}`
-          );
-          setS3FileList(fileList);
-        }
+        !location.state && getUniqueInstanceId(false);
+        const fileList = await listFiles(
+          `${formData.applicationId}/${uniqueInstanceId}`
+        );
+        setS3FileList(fileList);
       };
       getList();
     }
     // eslint-disable-next-line
-  }, [formData.applicationId]);
+  }, [formData.applicationId, location.state]);
 
   const isValid = () => {
     const newErrors = {};
 
-    if (alphanumericRegex.test(formData.applicationId)) {
-      if (!formData.applicationId.trim()) {
-        newErrors.applicationId = "Application number is required.";
-      } else if (
-        formData.applicationId.trim().length !== 10 &&
-        formData.applicationId.trim().length !== 16
-      ) {
-        newErrors.applicationId =
-          "Application number should be 10 characters or 16 characters.";
-      }
-    } else {
+    if (!alphanumericRegex.test(formData.applicationId)) {
       newErrors.applicationId =
         "Application number accepts alphanumeric characters.";
+    } else if (!formData.applicationId.trim()) {
+      newErrors.applicationId = "Application number is required.";
+    } else if (
+      formData.applicationId.trim().length !== 10 &&
+      formData.applicationId.trim().length !== 16
+    ) {
+      newErrors.applicationId =
+        "Application number should be 10 characters or 16 characters.";
     }
 
     if (!formData.type) {
@@ -445,9 +428,9 @@ const BTITool = () => {
         isClosable: true,
       });
       return false;
-    } else {
-      return true;
     }
+
+    return true;
   };
 
   const saveRequest = async () => {
@@ -650,7 +633,7 @@ const BTITool = () => {
                         setUploaderDialog({ open: true, data: null });
                       }}
                     >
-                      <Add style={{ color: "#455468" }} />
+                      <Add style={{ color: theme.colors.custom.main }} />
                       <Text variant="subtitle1">Add files</Text>
                     </Flex>
                   </Flex>
@@ -668,7 +651,7 @@ const BTITool = () => {
                         <Flex gap={4} alignItems="center">
                           <CircularProgress
                             isIndeterminate
-                            color="#1FAF10"
+                            color={theme.colors.success.main}
                             thickness="8px"
                             size="40px"
                           />
@@ -678,7 +661,7 @@ const BTITool = () => {
                         <Flex gap={4} alignItems="center">
                           <CircularProgress
                             isIndeterminate
-                            color="#1FAF10"
+                            color={theme.colors.success.main}
                             thickness="8px"
                             size="40px"
                           />
@@ -696,19 +679,22 @@ const BTITool = () => {
                               <Flex alignItems="center" gap={4}>
                                 {errorData &&
                                 errorData.hasOwnProperty(file.name) ? (
-                                  errorData[file.name] &&
                                   errorData[file.name] === "success" ? (
                                     <CheckCircleRoundedIcon
-                                      style={{ color: "#1FAF10" }}
+                                      style={{
+                                        color: theme.colors.success.main,
+                                      }}
                                     />
                                   ) : (
                                     <RemoveCircleRoundedIcon
-                                      style={{ color: "#BF0026" }}
+                                      style={{
+                                        color: theme.colors.primary.main,
+                                      }}
                                     />
                                   )
                                 ) : (
                                   <CheckCircleRoundedIcon
-                                    style={{ color: "#1FAF10" }}
+                                    style={{ color: theme.colors.success.main }}
                                   />
                                 )}
                                 {errorData &&
@@ -756,7 +742,7 @@ const BTITool = () => {
                                     >
                                       <DeleteOutlineRoundedIcon
                                         style={{
-                                          color: "#455468",
+                                          color: theme.colors.custom.main,
                                           fontSize: "20px",
                                         }}
                                       />
@@ -790,7 +776,7 @@ const BTITool = () => {
                                             s3FileList.includes(file.name) &&
                                             errorData &&
                                             errorData[file.name] !== "error"
-                                              ? "#BF0026"
+                                              ? theme.colors.primary.main
                                               : "gray",
                                           fontSize: "20px",
                                         }}
@@ -830,8 +816,8 @@ const BTITool = () => {
               w="25%"
               onClick={saveRequest}
               _disabled={{
-                bg: "#D9D9D9",
-                _hover: { bg: "#D9D9D9", cursor: "no-drop" },
+                bg: theme.colors.custom.lighter,
+                _hover: { bg: theme.colors.custom.lighter, cursor: "no-drop" },
               }}
               rightIcon={
                 loadingSave && (
@@ -852,8 +838,8 @@ const BTITool = () => {
                 fileLoading
               }
               _disabled={{
-                bg: "#D9D9D9",
-                _hover: { bg: "#D9D9D9", cursor: "no-drop" },
+                bg: theme.colors.custom.lighter,
+                _hover: { bg: theme.colors.custom.lighter, cursor: "no-drop" },
               }}
               w="25%"
               onClick={handleProcessRequest}
