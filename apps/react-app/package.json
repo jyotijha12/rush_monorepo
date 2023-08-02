@@ -1,5 +1,5 @@
 {
-  "name": "exl-ds-bti-portal",
+  "name": "@monorepo/react-app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
