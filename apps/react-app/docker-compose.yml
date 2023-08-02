@@ -1,0 +1,15 @@
+version: "3"
+services:
+  absa-ui:
+    image: absa-ui:latest
+    build:
+      context: .
+    restart: always
+    env_file: .env
+    container_name: absa_ui
+    networks:
+      - exl-network
+
+networks:
+  exl-network:
+    external: True
